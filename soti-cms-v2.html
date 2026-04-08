@@ -1447,7 +1447,7 @@ async function getMCToken() {
   const server = document.getElementById('mc-server').value || state.mc.server;
   const clientId = document.getElementById('mc-client-id').value || state.mc.clientId;
   const clientSecret = document.getElementById('mc-client-secret').value || state.mc.clientSecret;
-  const tokenUrl = server.replace(/\/?$/, '/') + 'api/token';
+  const tokenUrl = server.replace(/\/?$/, '/') + 'oauth/token';
   try {
     const resp = await fetch(tokenUrl, {
       method: 'POST',
