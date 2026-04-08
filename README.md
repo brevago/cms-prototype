@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-**[▶ Open the Prototype](https://yourname.github.io/soti-cms-prototype/soti-cms-shareable.html)**
+**[▶ Open the Prototype](https://brevago.github.io/soti-cms-prototype/soti-cms-shareable.html)**
 
 > No login required. Opens directly in any modern browser. Mock data is pre-loaded so you can explore all features immediately.
 
