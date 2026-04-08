@@ -835,10 +835,13 @@
           <div class="card-header"><div class="card-title">MobiControl Connection</div></div>
           <div class="card-body">
             <div class="settings-section-title">Server Configuration</div>
+            <div style="background:var(--blue-light);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--blue)">
+              <strong>OAuth2 · Authorization Code</strong> — Token endpoint: <code style="font-size:11px">{Server URL}oauth/token</code>
+            </div>
             <div class="grid-2">
               <div class="form-group">
                 <label class="form-label">Server URL</label>
-                <input class="form-control mono" id="mc-server" value="" placeholder="https://your-server.soti.net/MobiControl/" placeholder="https://your-server.soti.net/MobiControl/">
+                <input class="form-control mono" id="mc-server" value="" placeholder="https://your-server.soti.net/MobiControl/" oninput="updateTokenEndpointPreview(this.value)">
               </div>
               <div class="form-group">
                 <label class="form-label">Client Name</label>
@@ -851,6 +854,14 @@
               <div class="form-group">
                 <label class="form-label">Client Secret</label>
                 <input class="form-control mono" id="mc-client-secret" type="password" value="" placeholder="Enter Client Secret">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Grant Type</label>
+                <input class="form-control mono" value="authorization_code" readonly style="background:#F8FAFC;color:var(--text-secondary);cursor:default">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Token Endpoint (auto-constructed)</label>
+                <input class="form-control mono" id="mc-token-endpoint-display" value="{Server URL}oauth/token" readonly style="background:#F8FAFC;color:var(--text-secondary);cursor:default;font-size:11px">
               </div>
             </div>
             <div class="flex gap-8">
@@ -902,8 +913,8 @@
           <div class="card-header"><div class="card-title">About</div></div>
           <div class="card-body">
             <p class="text-sm text-muted">SOTI CMS Digital Signage Prototype — Built for SOTI product evaluation</p>
-            <p class="text-sm text-muted" style="margin-top:6px">Integrates with MobiControl via REST API (OAuth2 client credentials)</p>
-            <p class="text-sm" style="margin-top:10px">API endpoint: <code id="api-endpoint-display">Not configured</code></p>
+            <p class="text-sm text-muted" style="margin-top:6px">Integrates with MobiControl via REST API · OAuth2 Authorization Code grant</p>
+            <p class="text-sm" style="margin-top:10px">Token endpoint: <code id="api-endpoint-display">Not configured</code></p>
           </div>
         </div>
       </div>
@@ -1453,7 +1464,7 @@ async function getMCToken() {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        grant_type: 'client_credentials',
+        grant_type: 'authorization_code',
         client_id: clientId,
         client_secret: clientSecret
       })
@@ -2436,11 +2447,19 @@ function exportAudit() {
 }
 
 // ===================== SETTINGS =====================
+function updateTokenEndpointPreview(val) {
+  const endpoint = (val || '{Server URL}').replace(/\/?$/, '/') + 'oauth/token';
+  const el = document.getElementById('mc-token-endpoint-display');
+  if (el) el.value = endpoint;
+}
+
 function saveSettings() {
   state.mc.server = document.getElementById('mc-server').value;
   state.mc.clientId = document.getElementById('mc-client-id').value;
   state.mc.clientSecret = document.getElementById('mc-client-secret').value;
-  document.getElementById('api-endpoint-display').textContent = state.mc.server;
+  const tokenEndpoint = (state.mc.server || '{Server URL}').replace(/\/?$/, '/') + 'oauth/token';
+  document.getElementById('api-endpoint-display').textContent = tokenEndpoint;
+  document.getElementById('mc-token-endpoint-display').value = tokenEndpoint;
   showToast('Settings saved', 'success');
   addAuditEntry('Settings', 'MobiControl connection settings updated');
 }
