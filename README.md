@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-**[▶ Open the Prototype](https://brevago.github.io/soti-cms-prototype/soti-cms-shareable.html)**
+**[▶ Open the Prototype](https://yourname.github.io/soti-cms-prototype/soti-cms-shareable.html)**
 
 > No login required. Opens directly in any modern browser. Mock data is pre-loaded so you can explore all features immediately.
 
@@ -30,7 +30,46 @@ This prototype shows the value of combining **SOTI MobiControl** with a dedicate
 
 ## ✨ Features
 
-### 🎨 Layout Editor (WYSIWYG)
+### 🌐 Web Playlists (Browser-Based Content)
+- Add and manage a library of **web URLs** (dashboards, metrics, worker stations, intranets)
+- Configure **auto-refresh intervals** per URL (30s, 1m, 5m, 10m, 30m) to keep live data accurate
+- **Multi-zone layouts**: Single, 50/50, 70/30, Picture-in-Picture — display two websites side-by-side
+- Live zone preview canvas showing how content will appear on screen
+- Create named web playlists with **cycle intervals**, **priority levels** (Normal / High / Urgent), and device group targeting
+- Urgent priority interrupts active content immediately
+
+### 🖥️ Device Health & Display Power Status
+- **TV display power detection** via MobiControl `HdmiControlService` / Android CEC
+- Per-device status: Display ON / Standby / OFF with CEC signal confirmation
+- Device uptime, temperature, foreground app name, last recovery event
+- Poll individual or all displays on demand
+- Toggle display power (ON / Standby) per device directly from the dashboard
+- Configurable health alert rules (offline threshold, crash detection, power recovery)
+
+### ⚡ Power Management
+- Schedule **display ON/OFF times** per device group using CEC (e.g. retail store hours, office hours)
+- Quick actions: Power ON All, Standby All, or target a specific group
+- **Weekly power calendar** — visual grid showing when each group is scheduled ON vs OFF
+- Supports Daily, Weekdays, Weekends, or One-time repeat rules
+- Note: Device OS remains running in standby for continued remote management
+
+### 📱 Zero-Touch Deployment
+- Step-by-step **zero-touch provisioning** flow using MobiControl enrollment profiles
+- Generate and download **enrollment QR codes** — scan on first boot, device self-configures
+- Configure default enrollment group, auto-assigned playlist, and kiosk app package
+- Recently provisioned devices table with serial numbers, enrollment timestamps, and status
+- No IT technician required on-site — device is display-ready within minutes of first boot
+
+### 🔄 Self-Healing & Auto-Restore
+- Configurable **watchdog heartbeat** (default: 30s) — auto-relaunch on missed heartbeat
+- **Browser crash detection and auto-reload** — content restores within seconds
+- **Auto-boot after power failure** — device resumes playlist on power restore with no user action
+- Max auto-recover attempts before escalating to MobiControl remote reboot
+- **Scheduled nightly restart** for proactive memory management
+- Recovery event log with trigger, action taken, and recovery time per device
+- Exportable self-healing log (CSV)
+
+
 - Drag-and-drop canvas with pixel-accurate positioning
 - Add **images, video, text, and ticker zones**
 - Text styling: font size, colour, alignment, bold
@@ -174,6 +213,12 @@ The entire application is a **single self-contained HTML file** — no build ste
 - [x] Emergency override
 - [x] Proof of Play dashboard (online, connectivity, signal, playlist, screenshot)
 - [x] Remote reboot via MobiControl
+- [x] **Web Playlists** — URL library, auto-refresh, cycle playlists
+- [x] **Multi-zone layouts** — 50/50, 70/30, PiP for side-by-side dashboards
+- [x] **Device Health** — TV display power via CEC/HdmiControlService
+- [x] **Power Management** — scheduled ON/OFF per group, weekly calendar, quick actions
+- [x] **Zero-Touch Deployment** — QR enrollment, auto-assign group + playlist
+- [x] **Self-Healing** — watchdog, crash auto-reload, power failure auto-boot, nightly restart
 - [x] Audit log with CSV export
 - [x] Proof of Play CSV export
 - [x] Mock mode fallback

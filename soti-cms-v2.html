@@ -1,0 +1,2914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOTI CMS — Digital Signage Platform</title>
+
+<style>
+  :root {
+    --navy: #1A1F2E;
+    --navy-light: #252B3B;
+    --navy-hover: #2D3448;
+    --blue: #1A6FD4;
+    --blue-hover: #1560BB;
+    --blue-light: #E8F0FC;
+    --green: #2ECC71;
+    --green-bg: #E8F8F0;
+    --orange: #F26722;
+    --orange-bg: #FEF0E8;
+    --red: #E53E3E;
+    --red-bg: #FEE8E8;
+    --yellow: #F6AD55;
+    --yellow-bg: #FEF5E7;
+    --bg: #F0F2F7;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1A202C;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+    --sidebar-w: 220px;
+    --header-h: 56px;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); background: var(--navy); display: flex; flex-direction: column;
+    flex-shrink: 0; z-index: 100; transition: width 0.2s;
+  }
+  .sidebar-logo {
+    height: var(--header-h); display: flex; align-items: center; padding: 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08); gap: 10px;
+  }
+  .sidebar-logo .logo-mark {
+    width: 30px; height: 30px; background: var(--orange); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+    color: white; font-size: 13px; flex-shrink: 0; font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace;
+  }
+  .sidebar-logo .logo-text { color: white; font-weight: 600; font-size: 15px; letter-spacing: -0.3px; }
+  .sidebar-logo .logo-sub { color: rgba(255,255,255,0.45); font-size: 10px; font-weight: 400; letter-spacing: 0.5px; margin-top: 1px; }
+  .nav-section { padding: 8px 0; }
+  .nav-label { color: rgba(255,255,255,0.3); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 8px 16px 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer;
+    color: rgba(255,255,255,0.6); font-size: 13.5px; font-weight: 500; transition: all 0.15s;
+    border-left: 3px solid transparent; user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+  .nav-item.active { background: rgba(26,111,212,0.2); color: white; border-left-color: var(--blue); }
+  .nav-item .nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.8; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge { margin-left: auto; background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .connection-status { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(255,255,255,0.05); border-radius: 6px; }
+  .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 2s infinite; }
+  .conn-dot.disconnected { background: var(--red); animation: none; }
+  .conn-dot.connecting { background: var(--yellow); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .conn-text { color: rgba(255,255,255,0.6); font-size: 11px; }
+  .conn-text strong { color: white; display: block; font-size: 12px; }
+
+  /* MAIN */
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #topbar {
+    height: var(--header-h); background: var(--card); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; flex-shrink: 0;
+  }
+  .page-title { font-weight: 700; font-size: 16px; color: var(--text); }
+  .page-breadcrumb { color: var(--text-secondary); font-size: 13px; }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius);
+    font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    transition: all 0.15s; user-select: none; white-space: nowrap;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-hover); }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #FCA5A5; }
+  .btn-danger:hover { background: #FEE2E2; }
+  .btn-orange { background: var(--orange); color: white; }
+  .btn-orange:hover { background: #E05A1A; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon { padding: 7px; }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* CONTENT AREA */
+  #content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* CARDS */
+  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-weight: 700; font-size: 14px; color: var(--text); }
+  .card-body { padding: 20px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+  /* STAT CARDS */
+  .stat-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px 20px; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+  .stat-icon { float: right; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+
+  /* STATUS BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--green-bg); color: #16A34A; }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-orange { background: var(--orange-bg); color: var(--orange); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: #F1F5F9; color: var(--text-secondary); }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); padding: 10px 16px; border-bottom: 1px solid var(--border); background: #FAFBFC; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFBFC; }
+
+  /* FORMS */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .form-control {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: var(--text); background: white;
+    transition: border-color 0.15s; outline: none;
+  }
+  .form-control:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,212,0.1); }
+  .form-control.mono { font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace; font-size: 12px; }
+  select.form-control { cursor: pointer; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all 0.15s; user-select: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+    display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; flex-direction: column;
+  }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-weight: 700; font-size: 16px; }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .close-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; border-radius: 4px; }
+  .close-btn:hover { background: var(--bg); color: var(--text); }
+
+  /* WYSIWYG CANVAS */
+  #canvas-container {
+    background: #2a2a2a; border-radius: var(--radius); padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .canvas-toolbar {
+    background: #1a1a1a; border-radius: 6px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .canvas-toolbar .tool-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white;
+    border-radius: 5px; padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    display: flex; align-items: center; gap: 5px; transition: all 0.15s; white-space: nowrap;
+  }
+  .canvas-toolbar .tool-btn:hover { background: rgba(255,255,255,0.2); }
+  .canvas-toolbar .tool-btn.active { background: var(--blue); border-color: var(--blue); }
+  .tool-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.15); margin: 0 4px; }
+  #canvas-wrapper {
+    position: relative; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); border-radius: 6px;
+    background: #000; cursor: default;
+  }
+  #slide-canvas { width: 100%; display: block; }
+  .canvas-element {
+    position: absolute; cursor: move; border: 2px solid transparent; user-select: none;
+    transition: border-color 0.1s;
+  }
+  .canvas-element.selected { border-color: var(--blue) !important; }
+  .canvas-element .resize-handle {
+    position: absolute; width: 8px; height: 8px; background: var(--blue); border-radius: 50%;
+    display: none;
+  }
+  .canvas-element.selected .resize-handle { display: block; }
+  .resize-se { bottom: -4px; right: -4px; cursor: se-resize; }
+  .resize-sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+  .resize-ne { top: -4px; right: -4px; cursor: ne-resize; }
+  .resize-nw { top: -4px; left: -4px; cursor: nw-resize; }
+  .canvas-element .element-label {
+    position: absolute; top: -20px; left: 0; background: var(--blue); color: white;
+    font-size: 9px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; display: none;
+    font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  }
+  .canvas-element.selected .element-label { display: block; }
+  .canvas-text-el { color: white; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .ticker-zone {
+    position: absolute; bottom: 0; left: 0; right: 0; background: rgba(242,103,34,0.9);
+    overflow: hidden; display: flex; align-items: center;
+  }
+  .ticker-content { white-space: nowrap; animation: ticker 20s linear infinite; color: white; font-weight: 500; padding: 0 20px; }
+  @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+  /* PLAYLIST */
+  .playlist-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .playlist-card:hover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,212,0.08); }
+  .playlist-card.selected { border-color: var(--blue); background: var(--blue-light); }
+  .playlist-thumb { width: 60px; height: 34px; background: var(--navy); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.5); overflow: hidden; }
+  .playlist-info { flex: 1; }
+  .playlist-name { font-weight: 600; font-size: 13px; }
+  .playlist-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .slide-strip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0; }
+  .slide-thumb {
+    width: 80px; height: 45px; background: var(--navy); border-radius: 4px; flex-shrink: 0;
+    border: 2px solid var(--border); cursor: pointer; position: relative; overflow: hidden;
+    transition: all 0.15s;
+  }
+  .slide-thumb:hover { border-color: var(--blue); }
+  .slide-thumb.active-slide { border-color: var(--blue); }
+  .slide-thumb .slide-duration { position: absolute; bottom: 2px; right: 3px; font-size: 9px; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.5); padding: 1px 4px; border-radius: 2px; font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace; }
+  .slide-add { border: 2px dashed var(--border); background: transparent; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 20px; }
+  .slide-add:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* SCHEDULE */
+  .schedule-timeline { position: relative; margin: 16px 0; }
+  .timeline-header { display: flex; margin-bottom: 4px; }
+  .timeline-hour { flex: 1; font-size: 10px; color: var(--text-muted); text-align: center; font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace; }
+  .timeline-track { height: 40px; background: #F1F5F9; border-radius: 6px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+  .timeline-block {
+    position: absolute; top: 4px; height: 32px; border-radius: 4px; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 600; color: white; cursor: pointer;
+    transition: opacity 0.15s; overflow: hidden; white-space: nowrap; padding: 0 6px;
+  }
+  .timeline-block:hover { opacity: 0.9; }
+
+  /* PROOF OF PLAY */
+  .pop-device-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 0; overflow: hidden; transition: box-shadow 0.15s;
+  }
+  .pop-device-card:hover { box-shadow: var(--shadow-md); }
+  .pop-device-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+  .pop-device-thumb {
+    width: 80px; height: 45px; background: var(--navy); border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.4);
+    overflow: hidden; position: relative; cursor: pointer;
+  }
+  .pop-device-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pop-device-thumb .thumb-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center;
+    justify-content: center; color: white; font-size: 10px; font-weight: 600;
+  }
+  .pop-device-thumb:hover .thumb-overlay { display: flex; }
+  .pop-device-info { flex: 1; }
+  .pop-device-name { font-weight: 700; font-size: 14px; }
+  .pop-device-group { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .pop-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .pop-metric { padding: 12px 16px; border-right: 1px solid var(--border); }
+  .pop-metric:last-child { border-right: none; }
+  .pop-metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .pop-metric-value { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .check-icon { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .check-pass { background: var(--green-bg); color: #16A34A; }
+  .check-fail { background: var(--red-bg); color: var(--red); }
+  .check-warn { background: var(--yellow-bg); color: #92400E; }
+
+  /* ASSET LIBRARY */
+  .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .asset-item {
+    background: var(--bg); border: 2px solid var(--border); border-radius: 6px;
+    aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden; transition: all 0.15s;
+    flex-direction: column; gap: 4px;
+  }
+  .asset-item:hover { border-color: var(--blue); }
+  .asset-item.selected { border-color: var(--blue); background: var(--blue-light); }
+  .asset-item img, .asset-item video { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+  .asset-type-icon { font-size: 24px; }
+  .asset-name { font-size: 10px; color: var(--text-secondary); text-align: center; padding: 0 4px; position: relative; z-index: 1; }
+  .upload-drop-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px;
+    text-align: center; cursor: pointer; transition: all 0.15s;
+  }
+  .upload-drop-zone:hover, .upload-drop-zone.drag-over { border-color: var(--blue); background: var(--blue-light); }
+  .upload-drop-zone h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .upload-drop-zone p { font-size: 12px; color: var(--text-secondary); }
+
+  /* SETTINGS */
+  .settings-section { margin-bottom: 28px; }
+  .settings-section-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-info .setting-name { font-weight: 600; font-size: 13px; }
+  .setting-info .setting-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .toggle { width: 36px; height: 20px; background: var(--border); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--green); }
+  .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* EMERGENCY BANNER */
+  .emergency-bar {
+    background: var(--red); color: white; padding: 8px 24px; font-size: 13px;
+    font-weight: 600; display: flex; align-items: center; gap: 10px; display: none;
+  }
+  .emergency-bar.show { display: flex; }
+  .emergency-bar .dismiss { margin-left: auto; background: rgba(255,255,255,0.2); border: none; color: white; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+  /* TOAST */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--navy); color: white; padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.3s ease; max-width: 320px;
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.warning { border-left: 3px solid var(--yellow); }
+  .toast.info { border-left: 3px solid var(--blue); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* LOADER */
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-dark { border-color: rgba(0,0,0,0.1); border-top-color: var(--blue); }
+
+  /* MISC */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
+  .empty-state svg { margin: 0 auto 16px; opacity: 0.3; }
+  .empty-state h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .text-sm { font-size: 12px; }
+  .text-muted { color: var(--text-secondary); }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .flex { display: flex; }
+  .flex-center { display: flex; align-items: center; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .ml-auto { margin-left: auto; }
+  code { font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace; font-size: 11px; background: #F1F5F9; padding: 2px 5px; border-radius: 3px; }
+
+  /* Screen preview modal */
+  #screen-preview-modal .modal { max-width: 960px; }
+  #screen-preview-img { width: 100%; border-radius: 6px; background: #000; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+
+  /* Responsive tweaks */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 60px; }
+    .nav-item span, .nav-label, .sidebar-logo .logo-text, .sidebar-logo .logo-sub, .conn-text { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-badge { display: none; }
+  }
+
+  .zone-overlay {
+    position: absolute; border: 2px dashed rgba(255,255,255,0.3); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+    color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    pointer-events: none;
+  }
+
+  .prop-panel { background: #1a1a1a; border-radius: 6px; padding: 14px; margin-top: 12px; }
+  .prop-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .prop-label { font-size: 11px; color: rgba(255,255,255,0.5); width: 60px; flex-shrink: 0; }
+  .prop-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 5px 8px; color: white; font-size: 12px; font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; outline: none; }
+  .prop-input:focus { border-color: var(--blue); }
+  select.prop-input option { background: #222; }
+
+  .audit-entry { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .audit-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); margin-top: 4px; flex-shrink: 0; }
+  .audit-time { font-size: 11px; color: var(--text-secondary); font-family: 'Consolas', 'SF Mono', 'Fira Code', 'Monaco', monospace; white-space: nowrap; }
+  .audit-msg { font-size: 13px; flex: 1; }
+
+  .device-group-tree { }
+  .tree-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; }
+  .tree-item:hover { background: var(--bg); }
+  .tree-item.selected { background: var(--blue-light); color: var(--blue); }
+  .tree-child { padding-left: 28px; }
+  .tree-icon { width: 16px; height: 16px; color: var(--text-secondary); }
+
+  /* WEB PLAYLIST */
+  .web-url-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .web-url-favicon { width: 28px; height: 28px; border-radius: 6px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+  .web-url-info { flex: 1; min-width: 0; }
+  .web-url-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .web-url-href { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Consolas','SF Mono',monospace; }
+
+  /* MULTI-ZONE PREVIEW */
+  .zone-layout-picker { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+  .zone-layout-opt { border: 2px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .zone-layout-opt:hover { border-color: var(--blue); }
+  .zone-layout-opt.selected { border-color: var(--blue); background: var(--blue-light); }
+  .zone-layout-opt .layout-thumb { width: 100%; aspect-ratio: 16/9; background: #1A1F2E; border-radius: 4px; margin-bottom: 6px; overflow: hidden; display: flex; gap: 2px; padding: 3px; }
+  .zone-layout-opt .lz { background: rgba(26,111,212,0.5); border-radius: 2px; }
+  .zone-layout-opt .lz2 { background: rgba(242,103,34,0.5); border-radius: 2px; }
+  .zone-layout-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+
+  /* DEVICE HEALTH */
+  .health-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .health-card-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .display-power-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .health-metrics { display: grid; grid-template-columns: repeat(5,1fr); }
+  .health-metric { padding: 10px 12px; border-right: 1px solid var(--border); }
+  .health-metric:last-child { border-right: none; }
+  .health-metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary); margin-bottom: 5px; }
+  .health-metric-val { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .tv-on { color: #16A34A; } .tv-standby { color: var(--yellow); } .tv-off { color: var(--red); }
+
+  /* POWER SCHEDULE */
+  .power-schedule-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .power-schedule-row:last-child { border-bottom: none; }
+  .power-time-badge { background: var(--navy); color: white; font-family: 'Consolas','SF Mono',monospace; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+  .power-on-badge { background: var(--green-bg); color: #16A34A; }
+  .power-off-badge { background: #1A1F2E; color: rgba(255,255,255,0.7); }
+
+  /* SELF-HEALING */
+  .heal-event { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .heal-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+  .heal-auto { background: var(--green-bg); }
+  .heal-warn { background: var(--yellow-bg); }
+  .heal-fail { background: var(--red-bg); }
+
+  /* ZERO TOUCH */
+  .provision-step { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .provision-step:last-child { border-bottom: none; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-num.done { background: var(--green); }
+  .step-info { flex: 1; }
+  .step-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  .step-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .qr-placeholder { width: 100px; height: 100px; background: var(--navy); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">SC</div>
+    <div>
+      <div class="logo-text">SOTI CMS</div>
+      <div class="logo-sub">DIGITAL SIGNAGE</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Workspace</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('content')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span>Content Library</span>
+    </div>
+    <div class="nav-item" onclick="showPage('editor')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      <span>Layout Editor</span>
+    </div>
+    <div class="nav-item" onclick="showPage('playlists')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+      <span>Playlists</span>
+    </div>
+    <div class="nav-item" onclick="showPage('schedule')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span>Scheduler</span>
+    </div>
+    <div class="nav-item" onclick="showPage('pop')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Proof of Play</span>
+      <span class="nav-badge" id="pop-badge">0</span>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">System</div>
+    <div class="nav-item" onclick="showPage('webplaylists')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+      <span>Web Playlists</span>
+    </div>
+    <div class="nav-item" onclick="showPage('devices')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      <span>Devices</span>
+    </div>
+    <div class="nav-item" onclick="showPage('health')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      <span>Device Health</span>
+      <span class="nav-badge" id="health-badge" style="display:none">!</span>
+    </div>
+    <div class="nav-item" onclick="showPage('power')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <span>Power Management</span>
+    </div>
+    <div class="nav-item" onclick="showPage('zerotouch')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 0a2 2 0 104 0 2 2 0 00-4 0zm8 0a2 2 0 104 0 2 2 0 00-4 0zm4 8a2 2 0 104 0 2 2 0 00-4 0z"/></svg>
+      <span>Zero-Touch Setup</span>
+    </div>
+    <div class="nav-item" onclick="showPage('selfheal')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <span>Self-Healing</span>
+    </div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>MC Settings</span>
+    </div>
+    <div class="nav-item" onclick="showPage('audit')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span>Audit Log</span>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="connection-status" id="conn-status">
+      <div class="conn-dot disconnected" id="conn-dot"></div>
+      <div class="conn-text"><strong id="conn-label">Not Connected</strong><span id="conn-server">Configure settings</span></div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- Emergency bar -->
+  
+  <!-- Welcome Banner for first-time users -->
+  <div id="welcome-banner" style="background:linear-gradient(135deg,#1A6FD4,#0F4FA8);color:white;padding:12px 24px;display:flex;align-items:center;gap:16px;font-size:13px">
+    <span style="font-size:18px">👋</span>
+    <div><strong>Welcome to SOTI CMS Prototype</strong> — Enter your MobiControl credentials in <a href="#" onclick="showPage('settings');document.getElementById('welcome-banner').style.display='none'" style="color:#93C5FD;text-decoration:underline">Settings</a> to connect live, or explore with mock data (already loaded).</div>
+    <button onclick="this.parentElement.style.display='none'" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap">Dismiss</button>
+  </div>
+  <div class="emergency-bar" id="emergency-bar">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    🚨 EMERGENCY OVERRIDE ACTIVE — All screens showing emergency content
+    <button class="dismiss" onclick="cancelEmergency()">Cancel Override</button>
+  </div>
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <div>
+      <div class="page-title" id="topbar-title">Dashboard</div>
+      <div class="page-breadcrumb" id="topbar-sub">Overview of your digital signage network</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-danger btn-sm" onclick="triggerEmergency()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        Emergency Override
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="refreshAll()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Refresh
+      </button>
+      <button class="btn btn-primary btn-sm" id="topbar-action" onclick="topbarAction()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Content
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="grid-4 mb-16">
+        <div class="stat-card">
+          <div class="stat-label">Total Screens<div class="stat-icon" style="background:#EEF2FF"><svg width="18" height="18" fill="none" stroke="#6366F1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div></div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">Managed via MobiControl</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Online Now<div class="stat-icon" style="background:var(--green-bg)"><svg width="18" height="18" fill="none" stroke="#16A34A" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg></div></div>
+          <div class="stat-value" id="stat-online" style="color:var(--green)">—</div>
+          <div class="stat-sub" id="stat-online-pct">—% uptime</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Playlists<div class="stat-icon" style="background:var(--blue-light)"><svg width="18" height="18" fill="none" stroke="var(--blue)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2"/></svg></div></div>
+          <div class="stat-value" id="stat-playlists">3</div>
+          <div class="stat-sub">Across all device groups</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Alerts<div class="stat-icon" style="background:var(--red-bg)"><svg width="18" height="18" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div></div>
+          <div class="stat-value" id="stat-alerts" style="color:var(--red)">—</div>
+          <div class="stat-sub">Devices offline / issues</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap:16px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Device Status by Group</div>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('devices')">View All</button>
+          </div>
+          <div class="card-body" id="dashboard-groups" style="padding:0">
+            <div class="empty-state"><div class="spinner spinner-dark" style="margin:0 auto 12px"></div><p>Loading from MobiControl...</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Today's Schedule</div></div>
+          <div class="card-body" id="dashboard-schedule"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT LIBRARY -->
+    <div class="page" id="page-content">
+      <div class="card mb-16">
+        <div class="card-header">
+          <div class="card-title">Upload Assets</div>
+        </div>
+        <div class="card-body">
+          <div class="upload-drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px;color:var(--text-muted)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <h4>Drop files here or click to upload</h4>
+            <p>Supports: JPG, PNG, GIF, MP4, WebM, HTML • Max 500MB per file</p>
+            <input type="file" id="file-input" multiple accept="image/*,video/*,.html" style="display:none" onchange="handleFileUpload(this.files)">
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Asset Library</div>
+          <div class="flex gap-8">
+            <input type="text" class="form-control" placeholder="Search assets..." style="width:200px" oninput="filterAssets(this.value)">
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="asset-grid" id="asset-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYOUT EDITOR -->
+    <div class="page" id="page-editor">
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;height:calc(100vh - 120px)">
+        <div style="overflow-y:auto">
+          <div id="canvas-container">
+            <div class="canvas-toolbar">
+              <span style="color:rgba(255,255,255,0.4);font-size:11px;margin-right:4px">RESOLUTION</span>
+              <select class="tool-btn" id="resolution-select" onchange="setResolution(this.value)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;font-family:'Segoe UI','SF Pro Display',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:12px">
+                <option value="1920,1080">1920×1080 (16:9)</option>
+                <option value="1080,1920">1080×1920 (Portrait)</option>
+                <option value="3840,2160">3840×2160 (4K)</option>
+                <option value="1280,720">1280×720 (HD)</option>
+              </select>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" onclick="addTextElement()">＋ Text</button>
+              <button class="tool-btn" onclick="addImageFromLibrary()">＋ Image</button>
+              <button class="tool-btn" onclick="addVideoFromLibrary()">＋ Video</button>
+              <button class="tool-btn" onclick="addTickerZone()">＋ Ticker</button>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" onclick="addZone('main')">Zone: Main</button>
+              <button class="tool-btn" onclick="addZone('lower-third')">Zone: Lower Third</button>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" onclick="clearCanvas()">🗑 Clear</button>
+              <button class="tool-btn active" onclick="saveSlide()" style="margin-left:auto;background:var(--blue);border-color:var(--blue)">💾 Save Slide</button>
+            </div>
+            <div id="canvas-wrapper">
+              <canvas id="slide-canvas"></canvas>
+              <div id="elements-layer" style="position:absolute;top:0;left:0;width:100%;height:100%"></div>
+            </div>
+            <div class="prop-panel" id="prop-panel" style="display:none">
+              <div style="color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;margin-bottom:10px">Element Properties</div>
+              <div id="prop-fields"></div>
+            </div>
+          </div>
+        </div>
+        <div style="overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-header" style="padding:12px 16px"><div class="card-title" style="font-size:13px">Slides</div><button class="btn btn-primary btn-sm" onclick="newSlide()">+ New</button></div>
+            <div class="card-body" style="padding:12px">
+              <div class="slide-strip" id="slide-strip"></div>
+            </div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="card-header" style="padding:12px 16px"><div class="card-title" style="font-size:13px">Slide Settings</div></div>
+            <div class="card-body" style="padding:12px">
+              <div class="form-group">
+                <label class="form-label">Slide Name</label>
+                <input class="form-control" id="slide-name" placeholder="Slide 1" style="font-size:13px">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Duration (seconds)</label>
+                <input class="form-control" type="number" id="slide-duration" value="10" min="1" max="3600" style="font-size:13px">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Background Color</label>
+                <input type="color" class="form-control" id="slide-bg" value="#000000" style="height:36px;padding:2px 6px;cursor:pointer">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Content Expiry</label>
+                <input type="date" class="form-control" id="slide-expiry" style="font-size:13px">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYLISTS -->
+    <div class="page" id="page-playlists">
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px">
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Playlists</div>
+              <button class="btn btn-primary btn-sm" onclick="newPlaylist()">+ New</button>
+            </div>
+            <div class="card-body" style="padding:12px;display:flex;flex-direction:column;gap:8px" id="playlist-list"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" id="playlist-detail-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title" id="pl-detail-name">Select a playlist</div>
+                <div class="text-sm text-muted" id="pl-detail-meta"></div>
+              </div>
+              <div class="flex gap-8" id="pl-detail-actions" style="display:none!important"></div>
+            </div>
+            <div class="card-body" id="pl-detail-body">
+              <div class="empty-state">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+                <h3>No playlist selected</h3>
+                <p>Select a playlist from the left or create a new one</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULER -->
+    <div class="page" id="page-schedule">
+      <div class="card mb-16">
+        <div class="card-header">
+          <div class="card-title">Schedule Manager</div>
+          <div class="flex gap-8">
+            <button class="btn btn-secondary btn-sm" onclick="openScheduleModal()">+ Add Schedule Block</button>
+            <button class="btn btn-primary btn-sm" onclick="pushAllSchedules()">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              Deploy to Devices
+            </button>
+          </div>
+        </div>
+        <div class="card-body" id="schedule-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Assigned Device Groups</div></div>
+        <div class="card-body" id="schedule-devices-body">
+          <div class="empty-state"><p class="text-muted">Connect to MobiControl to see device groups</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROOF OF PLAY -->
+    <div class="page" id="page-pop">
+      <div class="flex-center gap-8 mb-16">
+        <div style="flex:1">
+          <input type="text" class="form-control" placeholder="Filter devices..." style="max-width:300px" oninput="filterPOP(this.value)">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="exportPOP()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export CSV
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="refreshPOP()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Refresh All
+        </button>
+      </div>
+      <div id="pop-grid" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+
+    <!-- DEVICES -->
+    <div class="page" id="page-devices">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">MobiControl Devices</div>
+          <div class="flex gap-8">
+            <span class="badge badge-blue" id="device-count-badge">Loading...</span>
+            <button class="btn btn-secondary btn-sm" onclick="loadDevices()">Sync from MC</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Device Name</th>
+                <th>Group</th>
+                <th>Status</th>
+                <th>Connection</th>
+                <th>Signal</th>
+                <th>Last Check-in</th>
+                <th>OS</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="devices-table-body">
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-secondary)">
+                <div class="spinner spinner-dark" style="margin:0 auto 12px"></div>Loading devices...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div style="max-width:720px">
+        <div class="card mb-16">
+          <div class="card-header"><div class="card-title">MobiControl Connection</div></div>
+          <div class="card-body">
+            <div class="settings-section-title">Server Configuration</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Server URL</label>
+                <input class="form-control mono" id="mc-server" value="" placeholder="https://your-server.soti.net/MobiControl/" placeholder="https://your-server.soti.net/MobiControl/">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client Name</label>
+                <input class="form-control" id="mc-client-name" value="cmsApiClient">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client ID</label>
+                <input class="form-control mono" id="mc-client-id" value="" placeholder="Enter Client ID">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client Secret</label>
+                <input class="form-control mono" id="mc-client-secret" type="password" value="" placeholder="Enter Client Secret">
+              </div>
+            </div>
+            <div class="flex gap-8">
+              <button class="btn btn-primary" onclick="testConnection()" id="test-conn-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Test Connection
+              </button>
+              <button class="btn btn-secondary" onclick="saveSettings()">Save Settings</button>
+            </div>
+            <div id="conn-result" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><div class="card-title">CMS Preferences</div></div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Auto-sync devices</div>
+                <div class="setting-desc">Automatically sync device list from MobiControl every 5 minutes</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Proof of Play screenshots</div>
+                <div class="setting-desc">Request screenshots from devices during proof of play checks</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Alert on offline devices</div>
+                <div class="setting-desc">Show alert badge when devices go offline</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Mock mode fallback</div>
+                <div class="setting-desc">Show simulated data when MobiControl is unreachable</div>
+              </div>
+              <div class="toggle on" id="mock-toggle" onclick="toggleMockMode(this)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">About</div></div>
+          <div class="card-body">
+            <p class="text-sm text-muted">SOTI CMS Digital Signage Prototype — Built for SOTI product evaluation</p>
+            <p class="text-sm text-muted" style="margin-top:6px">Integrates with MobiControl via REST API (OAuth2 client credentials)</p>
+            <p class="text-sm" style="margin-top:10px">API endpoint: <code id="api-endpoint-display">Not configured</code></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="page" id="page-audit">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Audit Log</div>
+          <button class="btn btn-secondary btn-sm" onclick="exportAudit()">Export</button>
+        </div>
+        <div class="card-body" id="audit-body"></div>
+      </div>
+    </div>
+
+    <!-- WEB PLAYLISTS -->
+    <div class="page" id="page-webplaylists">
+      <div class="grid-2" style="gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Web URL Library</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddUrlModal()">+ Add URL</button>
+          </div>
+          <div class="card-body" style="padding:12px;display:flex;flex-direction:column;gap:8px" id="web-url-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Multi-Zone Layout</div>
+            <span class="badge badge-blue">Side-by-side display</span>
+          </div>
+          <div class="card-body">
+            <div class="zone-layout-picker" id="zone-layout-picker">
+              <div class="zone-layout-opt selected" data-layout="single" onclick="selectZoneLayout(this,'single')">
+                <div class="layout-thumb"><div class="lz" style="flex:1"></div></div>
+                <div class="zone-layout-label">Single</div>
+              </div>
+              <div class="zone-layout-opt" data-layout="split-h" onclick="selectZoneLayout(this,'split-h')">
+                <div class="layout-thumb"><div class="lz" style="flex:1"></div><div class="lz2" style="flex:1"></div></div>
+                <div class="zone-layout-label">50 / 50</div>
+              </div>
+              <div class="zone-layout-opt" data-layout="split-70-30" onclick="selectZoneLayout(this,'split-70-30')">
+                <div class="layout-thumb"><div class="lz" style="flex:7"></div><div class="lz2" style="flex:3"></div></div>
+                <div class="zone-layout-label">70 / 30</div>
+              </div>
+              <div class="zone-layout-opt" data-layout="pip" onclick="selectZoneLayout(this,'pip')">
+                <div class="layout-thumb" style="position:relative"><div class="lz" style="flex:1"></div><div class="lz2" style="position:absolute;bottom:4px;right:4px;width:35%;height:50%;"></div></div>
+                <div class="zone-layout-label">PiP</div>
+              </div>
+            </div>
+            <div id="zone-preview" style="background:#1A1F2E;border-radius:8px;aspect-ratio:16/9;overflow:hidden;position:relative;border:2px solid var(--border)">
+              <div id="zone-a" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(26,111,212,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,0.6);flex-direction:column;gap:6px">
+                <div style="font-size:24px">🌐</div><div>Zone A — select a URL</div>
+                <select id="zone-a-url" onchange="updateZonePreview()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer"><option value="">— Select URL —</option></select>
+              </div>
+              <div id="zone-b" style="position:absolute;top:0;right:0;width:0;height:100%;background:rgba(242,103,34,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,0.6);flex-direction:column;gap:6px;overflow:hidden;transition:width 0.3s">
+                <div style="font-size:24px">🌐</div><div>Zone B</div>
+                <select id="zone-b-url" onchange="updateZonePreview()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer"><option value="">— Select URL —</option></select>
+              </div>
+            </div>
+            <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+              <button class="btn btn-secondary btn-sm" onclick="saveZoneLayout()">Save Layout</button>
+              <button class="btn btn-primary btn-sm" onclick="pushZoneLayout()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                Push to Devices
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Web Playlists</div>
+          <button class="btn btn-primary btn-sm" onclick="newWebPlaylist()">+ New Web Playlist</button>
+        </div>
+        <div class="card-body" id="web-playlist-body">
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>Name</th><th>URLs</th><th>Cycle Interval</th><th>Auto-Refresh</th><th>Priority</th><th>Assigned Groups</th><th>Actions</th></tr></thead>
+            <tbody id="web-playlist-table"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEVICE HEALTH -->
+    <div class="page" id="page-health">
+      <div class="grid-4 mb-16" id="health-stats"></div>
+      <div class="card mb-16">
+        <div class="card-header">
+          <div class="card-title">Display Power Status <span style="font-size:11px;font-weight:400;color:var(--text-secondary);margin-left:8px">via MobiControl HdmiControlService / CEC</span></div>
+          <div class="flex gap-8">
+            <button class="btn btn-secondary btn-sm" onclick="refreshHealth()">Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="pollAllDisplays()">Poll All Displays</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0" id="health-device-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Health Alert Rules</div><button class="btn btn-secondary btn-sm" onclick="addHealthAlert()">+ Add Rule</button></div>
+        <div class="card-body" id="health-alert-rules">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="setting-row"><div class="setting-info"><div class="setting-name">Alert if TV display is OFF during scheduled hours</div><div class="setting-desc">Trigger alert when CEC reports display powered off during an active playlist schedule</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="setting-row"><div class="setting-info"><div class="setting-name">Alert if device offline &gt; 10 minutes</div><div class="setting-desc">Send notification when device loses MobiControl connection</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="setting-row"><div class="setting-info"><div class="setting-name">Alert on browser crash detected</div><div class="setting-desc">Notify when self-healing system detects and recovers a crashed browser session</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="setting-row"><div class="setting-info"><div class="setting-name">Alert on power failure recovery</div><div class="setting-desc">Log and alert when a device auto-reboots after unexpected power failure</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POWER MANAGEMENT -->
+    <div class="page" id="page-power">
+      <div class="grid-2" style="gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Power Schedules</div>
+            <button class="btn btn-primary btn-sm" onclick="openPowerScheduleModal()">+ Add Schedule</button>
+          </div>
+          <div class="card-body" id="power-schedule-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Quick Actions</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--bg);border-radius:var(--radius);padding:14px">
+              <div style="font-weight:600;font-size:13px;margin-bottom:6px">Power ON — All Displays</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Send CEC power-on command to all managed displays via MobiControl</div>
+              <button class="btn btn-primary" onclick="powerAllOn()">⚡ Power ON All</button>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius);padding:14px">
+              <div style="font-weight:600;font-size:13px;margin-bottom:6px">Power OFF — All Displays</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Send CEC standby command to all displays. Device OS stays running for remote management.</div>
+              <button class="btn btn-danger" onclick="powerAllOff()">🔌 Standby All</button>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius);padding:14px">
+              <div style="font-weight:600;font-size:13px;margin-bottom:6px">Power by Group</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Target a specific device group</div>
+              <div class="flex gap-8">
+                <select class="form-control" id="power-group-select" style="flex:1"></select>
+                <button class="btn btn-primary btn-sm" onclick="powerGroupOn()">ON</button>
+                <button class="btn btn-secondary btn-sm" onclick="powerGroupOff()">OFF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Weekly Power Calendar</div><span class="badge badge-blue">All schedules · current week</span></div>
+        <div class="card-body" id="power-calendar"></div>
+      </div>
+    </div>
+
+    <!-- ZERO TOUCH SETUP -->
+    <div class="page" id="page-zerotouch">
+      <div class="grid-2" style="gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Zero-Touch Provisioning</div><span class="badge badge-green">Powered by MobiControl</span></div>
+          <div class="card-body">
+            <div style="background:var(--blue-light);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--blue)">
+              <strong>How it works:</strong> New Android devices auto-enroll into MobiControl on first boot using an enrollment QR code or NFC tag — no manual configuration needed. The CMS then auto-assigns the device to the correct group and playlist based on its serial number or enrollment profile.
+            </div>
+            <div id="provision-steps"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Enrollment QR Code</div></div>
+          <div class="card-body" style="text-align:center">
+            <div style="display:inline-block;background:white;padding:16px;border-radius:12px;border:2px solid var(--border);margin-bottom:16px">
+              <div style="width:160px;height:160px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:60px">📱</div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">Scan to Enroll Device</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">Points device to MobiControl enrollment server with pre-configured profile</div>
+            <div class="flex gap-8" style="justify-content:center">
+              <button class="btn btn-primary btn-sm" onclick="generateQR()">Generate New QR</button>
+              <button class="btn btn-secondary btn-sm" onclick="downloadQR()">Download PNG</button>
+            </div>
+            <div class="divider"></div>
+            <div style="text-align:left">
+              <div class="form-group">
+                <label class="form-label">Default Enrollment Group</label>
+                <select class="form-control" id="enroll-group"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Auto-assign Playlist</label>
+                <select class="form-control" id="enroll-playlist"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kiosk App Package Name</label>
+                <input class="form-control mono" value="net.soti.mobicontrol.cms.kiosk" placeholder="com.company.kioskapp">
+              </div>
+              <button class="btn btn-primary" onclick="saveEnrollConfig()" style="width:100%">Save Enrollment Config</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Recently Provisioned Devices</div><span class="badge badge-blue" id="provision-count">0 this week</span></div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Device</th><th>Serial</th><th>Enrolled</th><th>Group Assigned</th><th>Playlist</th><th>Status</th></tr></thead>
+          <tbody id="provision-table"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- SELF-HEALING -->
+    <div class="page" id="page-selfheal">
+      <div class="grid-4 mb-16" id="heal-stats"></div>
+      <div class="grid-2" style="gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Self-Healing Rules</div></div>
+          <div class="card-body" style="padding:0">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div class="setting-row" style="padding:0;border:none">
+                <div class="setting-info"><div class="setting-name">Auto-reload on browser crash</div><div class="setting-desc">Detect unresponsive browser process and automatically relaunch within 30 seconds</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div class="setting-row" style="padding:0;border:none">
+                <div class="setting-info"><div class="setting-name">Auto-boot after power failure</div><div class="setting-desc">Device resumes playlist automatically on power restore — no user action required (via Android boot receiver)</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div class="setting-row" style="padding:0;border:none">
+                <div class="setting-info"><div class="setting-name">Watchdog heartbeat interval</div><div class="setting-desc">Device pings CMS every N seconds; if missed, self-relaunch triggered</div></div>
+                <div class="flex gap-8" style="align-items:center">
+                  <input type="number" class="form-control" value="30" style="width:70px"> <span style="font-size:12px;color:var(--text-secondary)">seconds</span>
+                </div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div class="setting-row" style="padding:0;border:none">
+                <div class="setting-info"><div class="setting-name">Max auto-recover attempts</div><div class="setting-desc">Before escalating to full device reboot via MobiControl</div></div>
+                <div class="flex gap-8" style="align-items:center">
+                  <input type="number" class="form-control" value="3" style="width:70px"> <span style="font-size:12px;color:var(--text-secondary)">attempts</span>
+                </div>
+              </div>
+            </div>
+            <div style="padding:14px 16px">
+              <div class="setting-row" style="padding:0;border:none">
+                <div class="setting-info"><div class="setting-name">Scheduled nightly restart</div><div class="setting-desc">Proactive daily reboot at off-hours to clear memory and refresh content</div></div>
+                <div class="flex gap-8" style="align-items:center">
+                  <input type="time" class="form-control" value="03:00" style="width:110px">
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recovery Event Log</div><button class="btn btn-secondary btn-sm" onclick="exportHealLog()">Export</button></div>
+          <div class="card-body" style="padding:12px;max-height:400px;overflow-y:auto" id="heal-event-log"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Device Recovery Status</div></div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Device</th><th>Last Recovery</th><th>Trigger</th><th>Action Taken</th><th>Recovery Time</th><th>Status</th></tr></thead>
+          <tbody id="heal-device-table"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-newplaylist">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Playlist</div>
+      <button class="close-btn" onclick="closeModal('modal-newplaylist')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Playlist Name</label>
+        <input class="form-control" id="new-pl-name" placeholder="e.g. Morning Lobby Loop">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Default Slide Duration (seconds)</label>
+        <input class="form-control" type="number" id="new-pl-duration" value="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input class="form-control" id="new-pl-desc" placeholder="Brief description">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-newplaylist')">Cancel</button>
+      <button class="btn btn-primary" onclick="createPlaylist()">Create Playlist</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-schedule">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Schedule Block</div>
+      <button class="close-btn" onclick="closeModal('modal-schedule')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Playlist</label>
+          <select class="form-control" id="sched-playlist"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Device Group</label>
+          <select class="form-control" id="sched-group"><option>Loading...</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input type="time" class="form-control" id="sched-start" value="08:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          <input type="time" class="form-control" id="sched-end" value="12:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="sched-date-start">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date (optional)</label>
+          <input type="date" class="form-control" id="sched-date-end">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Repeat</label>
+        <select class="form-control" id="sched-repeat">
+          <option>Daily</option>
+          <option>Weekdays only</option>
+          <option>Weekends only</option>
+          <option>One-time</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-schedule')">Cancel</button>
+      <button class="btn btn-primary" onclick="addScheduleBlock()">Add Block</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-addslide">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">Add Slide to Playlist</div>
+      <button class="close-btn" onclick="closeModal('modal-addslide')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Select Slide</label>
+        <select class="form-control" id="slide-select-pl"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration Override (seconds, 0 = use slide default)</label>
+        <input type="number" class="form-control" id="slide-pl-dur" value="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-addslide')">Cancel</button>
+      <button class="btn btn-primary" onclick="addSlideToPL()">Add to Playlist</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-screen-preview">
+  <div class="modal" style="max-width:900px">
+    <div class="modal-header">
+      <div class="modal-title" id="preview-modal-title">Screen Preview</div>
+      <button class="close-btn" onclick="closeModal('modal-screen-preview')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="screen-preview-img" style="background:#111;min-height:300px;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+        <div style="color:rgba(255,255,255,0.4);text-align:center">
+          <div class="spinner" style="margin:0 auto 12px"></div>
+          <p id="preview-loading-text">Requesting screenshot from device...</p>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px" id="preview-device-info"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="preview-reboot-btn">Reboot Device</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-screen-preview')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-asset-picker">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="asset-picker-title">Select Asset</div>
+      <button class="close-btn" onclick="closeModal('modal-asset-picker')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="asset-grid" id="asset-picker-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-asset-picker')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAssetPick()">Add to Canvas</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-addurl">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><div class="modal-title">Add Web URL</div><button class="close-btn" onclick="closeModal('modal-addurl')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Display Name</label><input class="form-control" id="url-name" placeholder="e.g. KPI Dashboard"></div>
+      <div class="form-group"><label class="form-label">URL</label><input class="form-control mono" id="url-href" placeholder="https://dashboard.company.com/kpis"></div>
+      <div class="form-group"><label class="form-label">Auto-Refresh Interval</label>
+        <select class="form-control" id="url-refresh">
+          <option value="0">No auto-refresh</option><option value="30">Every 30 seconds</option>
+          <option value="60" selected>Every 1 minute</option><option value="300">Every 5 minutes</option>
+          <option value="600">Every 10 minutes</option><option value="1800">Every 30 minutes</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-control" id="url-category">
+          <option>Dashboard / Metrics</option><option>Worker Stations</option><option>News / Info</option>
+          <option>Social Media</option><option>Custom</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Notes (optional)</label><input class="form-control" id="url-notes" placeholder="Brief description"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-addurl')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWebUrl()">Add URL</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-webplaylist">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><div class="modal-title">New Web Playlist</div><button class="close-btn" onclick="closeModal('modal-webplaylist')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Playlist Name</label><input class="form-control" id="wp-name" placeholder="e.g. Ops Floor Rotation"></div>
+      <div class="form-group"><label class="form-label">Cycle Interval (seconds per URL)</label><input type="number" class="form-control" id="wp-interval" value="30"></div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select class="form-control" id="wp-priority">
+          <option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent — interrupts active content</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">URLs to Include</label>
+        <div id="wp-url-checkboxes" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:10px"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Assign to Device Group</label><select class="form-control" id="wp-group"></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-webplaylist')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWebPlaylist()">Create Playlist</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-power-schedule">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><div class="modal-title">Add Power Schedule</div><button class="close-btn" onclick="closeModal('modal-power-schedule')">✕</button></div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Device Group</label><select class="form-control" id="ps-group"></select></div>
+        <div class="form-group"><label class="form-label">Action</label>
+          <select class="form-control" id="ps-action"><option value="on">Power ON (CEC)</option><option value="off">Power OFF / Standby (CEC)</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Time</label><input type="time" class="form-control" id="ps-time" value="08:00"></div>
+        <div class="form-group"><label class="form-label">Repeat</label>
+          <select class="form-control" id="ps-repeat"><option>Daily</option><option>Weekdays only</option><option>Weekends only</option><option>One-time</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><input class="form-control" id="ps-notes" placeholder="e.g. Retail store opening hours"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-power-schedule')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePowerSchedule()">Add Schedule</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ===================== STATE =====================
+const state = {
+  mc: {
+    server: '',
+    clientId: '',
+    clientSecret: '',
+    clientName: 'cmsApiClient',
+    token: null,
+    tokenExpiry: null,
+    connected: false,
+    mockMode: true
+  },
+  devices: [],
+  groups: [],
+  assets: [],
+  slides: [],
+  playlists: [],
+  schedules: [],
+  auditLog: [],
+  currentSlideIdx: 0,
+  currentPlaylistIdx: null,
+  selectedAssets: [],
+  assetPickerType: null,
+  assetPickerCallback: null,
+  emergencyActive: false,
+  resolution: { w: 1920, h: 1080 }
+};
+
+// ===================== MOCK DATA =====================
+const MOCK_DEVICES = [
+  { id: 'd1', name: 'Lobby Display 1', group: '/My Company/Toronto HQ/Lobby', status: 'Online', lastCheckin: new Date(Date.now()-120000), connection: 'WiFi', signal: -45, os: 'Android 12', playlist: 'Morning Loop', ip: '192.168.1.101' },
+  { id: 'd2', name: 'Lobby Display 2', group: '/My Company/Toronto HQ/Lobby', status: 'Online', lastCheckin: new Date(Date.now()-300000), connection: 'WiFi', signal: -58, os: 'Android 12', playlist: 'Morning Loop', ip: '192.168.1.102' },
+  { id: 'd3', name: 'Cafeteria Screen', group: '/My Company/Toronto HQ/Cafeteria', status: 'Online', lastCheckin: new Date(Date.now()-60000), connection: 'Ethernet', signal: null, os: 'Android 11', playlist: 'Menu Board', ip: '192.168.1.110' },
+  { id: 'd4', name: 'Retail - East Entrance', group: '/My Company/Retail/East Region', status: 'Offline', lastCheckin: new Date(Date.now()-7200000), connection: 'WiFi', signal: -82, os: 'Android 10', playlist: 'Promotions', ip: '10.0.1.50' },
+  { id: 'd5', name: 'Retail - West Entrance', group: '/My Company/Retail/West Region', status: 'Online', lastCheckin: new Date(Date.now()-90000), connection: 'Cellular', signal: -67, os: 'Android 12', playlist: 'Promotions', ip: '10.0.2.50' },
+  { id: 'd6', name: 'Warehouse Floor A', group: '/My Company/Warehouse', status: 'Online', lastCheckin: new Date(Date.now()-180000), connection: 'WiFi', signal: -71, os: 'Android 11', playlist: 'Safety Notices', ip: '172.16.0.10' },
+  { id: 'd7', name: 'Executive Boardroom', group: '/My Company/Toronto HQ/Boardroom', status: 'Online', lastCheckin: new Date(Date.now()-45000), connection: 'Ethernet', signal: null, os: 'Windows 10', playlist: 'Corporate', ip: '192.168.1.200' },
+  { id: 'd8', name: 'Airport Gate B12', group: '/My Company/Airport/Terminal B', status: 'Online', lastCheckin: new Date(Date.now()-30000), connection: 'WiFi', signal: -52, os: 'Android 12', playlist: 'Flight Info', ip: '10.10.1.12' },
+];
+
+const MOCK_GROUPS = [
+  { path: '/My Company', name: 'My Company', count: 8 },
+  { path: '/My Company/Toronto HQ', name: 'Toronto HQ', count: 4 },
+  { path: '/My Company/Retail', name: 'Retail', count: 2 },
+  { path: '/My Company/Warehouse', name: 'Warehouse', count: 1 },
+  { path: '/My Company/Airport', name: 'Airport', count: 1 },
+];
+
+const MOCK_PLAYLISTS_INIT = [
+  { id: 'pl1', name: 'Morning Loop', desc: 'Lobby morning content', slides: [], defaultDuration: 10 },
+  { id: 'pl2', name: 'Promotions', desc: 'Retail promotions', slides: [], defaultDuration: 15 },
+  { id: 'pl3', name: 'Safety Notices', desc: 'Warehouse safety content', slides: [], defaultDuration: 8 },
+];
+
+// ===================== MC API =====================
+async function getMCToken() {
+  if (state.mc.token && state.mc.tokenExpiry && Date.now() < state.mc.tokenExpiry) return state.mc.token;
+  const server = document.getElementById('mc-server').value || state.mc.server;
+  const clientId = document.getElementById('mc-client-id').value || state.mc.clientId;
+  const clientSecret = document.getElementById('mc-client-secret').value || state.mc.clientSecret;
+  const tokenUrl = server.replace(/\/?$/, '/') + 'api/token';
+  try {
+    const resp = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret
+      })
+    });
+    if (!resp.ok) throw new Error(`Token request failed: ${resp.status}`);
+    const data = await resp.json();
+    state.mc.token = data.access_token;
+    state.mc.tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+    state.mc.connected = true;
+    updateConnectionUI(true);
+    return state.mc.token;
+  } catch(e) {
+    state.mc.connected = false;
+    updateConnectionUI(false);
+    if (!state.mc.mockMode) throw e;
+    return null;
+  }
+}
+
+async function mcAPI(path, method='GET', body=null) {
+  const token = await getMCToken();
+  if (!token) return null; // mock mode fallback
+  const server = document.getElementById('mc-server').value || state.mc.server;
+  const base = server.replace(/\/?$/, '/');
+  const url = base + 'api/v2/' + path;
+  const opts = { method, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const resp = await fetch(url, opts);
+    if (!resp.ok) throw new Error(`MC API ${method} ${path} failed: ${resp.status}`);
+    if (resp.status === 204) return {};
+    return await resp.json();
+  } catch(e) {
+    console.warn('MC API error, falling back to mock:', e.message);
+    return null;
+  }
+}
+
+async function loadDevices() {
+  showToast('Syncing devices from MobiControl...', 'info');
+  const data = await mcAPI('devices?take=200');
+  if (data && data.items) {
+    state.devices = data.items.map(d => ({
+      id: d.DeviceId || d.id,
+      name: d.DeviceName || d.name || 'Unknown',
+      group: d.DeviceGroupPath || d.groupPath || '/',
+      status: d.IsOnline ? 'Online' : 'Offline',
+      lastCheckin: new Date(d.LastCheckInTime || d.lastCheckin || Date.now()),
+      connection: d.ConnectionType || 'WiFi',
+      signal: d.SignalStrength || null,
+      os: `${d.OSType || 'Android'} ${d.OSVersion || ''}`.trim(),
+      playlist: 'Active',
+      ip: d.IPAddress || ''
+    }));
+    showToast(`Loaded ${state.devices.length} devices from MobiControl`, 'success');
+    addAuditEntry('System', `Synced ${state.devices.length} devices from MobiControl`);
+  } else {
+    state.devices = [...MOCK_DEVICES];
+    if (state.mc.mockMode) showToast('Using simulated device data (mock mode)', 'warning');
+    else showToast('Could not reach MobiControl — using demo data', 'warning');
+  }
+  state.groups = [...MOCK_GROUPS];
+  updateStats();
+  renderDevicesTable();
+  renderDashboardGroups();
+  renderPOP();
+  updatePOPBadge();
+  populateScheduleGroups();
+}
+
+async function testConnection() {
+  const btn = document.getElementById('test-conn-btn');
+  btn.innerHTML = '<div class="spinner"></div> Testing...';
+  btn.disabled = true;
+  const resultEl = document.getElementById('conn-result');
+  try {
+    state.mc.token = null;
+    const token = await getMCToken();
+    if (token) {
+      resultEl.innerHTML = `<div class="badge badge-green" style="font-size:13px;padding:8px 14px">✓ Connected successfully to MobiControl</div>`;
+      addAuditEntry('Settings', 'MobiControl connection test successful');
+      await loadDevices();
+    } else {
+      resultEl.innerHTML = `<div class="badge badge-orange" style="font-size:13px;padding:8px 14px">⚠ Could not authenticate — mock mode enabled. Check credentials.</div>`;
+    }
+  } catch(e) {
+    resultEl.innerHTML = `<div class="badge badge-red" style="font-size:13px;padding:8px 14px">✗ Connection failed: ${e.message}</div>`;
+  }
+  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Test Connection';
+  btn.disabled = false;
+}
+
+function updateConnectionUI(connected) {
+  const dot = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+  const srv = document.getElementById('conn-server');
+  const mcServer = document.getElementById('mc-server');
+  if (connected) {
+    dot.className = 'conn-dot';
+    label.textContent = 'Connected';
+    srv.textContent = mcServer ? mcServer.value.replace('https://','').split('/')[0] : '';
+  } else {
+    dot.className = 'conn-dot disconnected';
+    label.textContent = state.mc.mockMode ? 'Mock Mode' : 'Disconnected';
+    srv.textContent = 'Not connected';
+  }
+}
+
+// ===================== UI HELPERS =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+  const titles = {
+    dashboard: ['Dashboard', 'Overview of your digital signage network'],
+    content: ['Content Library', 'Manage uploaded assets'],
+    editor: ['Layout Editor', 'WYSIWYG canvas editor'],
+    playlists: ['Playlists', 'Manage and build content playlists'],
+    schedule: ['Scheduler', 'Configure time-of-day playlist schedules'],
+    pop: ['Proof of Play', 'Real-time verification of device playback'],
+    devices: ['Devices', 'All managed screens via MobiControl'],
+    settings: ['MC Settings', 'MobiControl connection & CMS preferences'],
+    audit: ['Audit Log', 'History of all CMS actions'],
+    webplaylists: ['Web Playlists', 'Browser-based content — URLs, dashboards, multi-zone layouts'],
+    health: ['Device Health', 'Display power status via MobiControl CEC / HdmiControlService'],
+    power: ['Power Management', 'Schedule display ON/OFF via CEC across device groups'],
+    zerotouch: ['Zero-Touch Setup', 'Automated provisioning and enrollment via MobiControl'],
+    selfheal: ['Self-Healing', 'Automatic crash recovery, watchdog, and boot restore'],
+  };
+  document.getElementById('topbar-title').textContent = titles[id]?.[0] || id;
+  document.getElementById('topbar-sub').textContent = titles[id]?.[1] || '';
+  if (id === 'playlists') renderPlaylists();
+  if (id === 'schedule') renderSchedule();
+  if (id === 'audit') renderAuditLog();
+  if (id === 'editor') initCanvas();
+  if (id === 'content') renderAssetGrid();
+  if (id === 'webplaylists') { renderWebUrlList(); renderWebPlaylistTable(); }
+  if (id === 'health') { renderHealthStats(); renderHealthDeviceList(); }
+  if (id === 'power') { renderPowerSchedules(); populatePowerGroupSelect(); }
+  if (id === 'zerotouch') renderZeroTouch();
+  if (id === 'selfheal') renderSelfHeal();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+  t.innerHTML = `<span style="font-size:16px">${icons[type]||'ℹ'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function addAuditEntry(actor, msg) {
+  state.auditLog.unshift({ time: new Date(), actor, msg });
+  if (state.auditLog.length > 200) state.auditLog.pop();
+}
+
+// ===================== STATS =====================
+function updateStats() {
+  const total = state.devices.length;
+  const online = state.devices.filter(d => d.status === 'Online').length;
+  const offline = total - online;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-online').textContent = online;
+  document.getElementById('stat-online-pct').textContent = total > 0 ? `${Math.round(online/total*100)}% uptime` : '—';
+  document.getElementById('stat-alerts').textContent = offline;
+  document.getElementById('stat-playlists').textContent = state.playlists.length;
+  updatePOPBadge();
+}
+
+function updatePOPBadge() {
+  const offline = state.devices.filter(d => d.status === 'Offline').length;
+  document.getElementById('pop-badge').textContent = offline;
+  document.getElementById('pop-badge').style.display = offline > 0 ? '' : 'none';
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboardGroups() {
+  const el = document.getElementById('dashboard-groups');
+  if (!state.devices.length) { el.innerHTML = '<div class="empty-state"><p>No devices loaded</p></div>'; return; }
+  const groups = {};
+  state.devices.forEach(d => {
+    const parts = d.group.split('/').filter(Boolean);
+    const g = parts.slice(0,3).join('/') || 'Ungrouped';
+    if (!groups[g]) groups[g] = { online:0, offline:0 };
+    if (d.status === 'Online') groups[g].online++; else groups[g].offline++;
+  });
+  el.innerHTML = Object.entries(groups).map(([g, c]) => {
+    const total = c.online + c.offline;
+    const pct = Math.round(c.online/total*100);
+    return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--text-secondary);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${g.split('/').pop()}</div><div style="font-size:11px;color:var(--text-secondary)">${g}</div></div>
+      <div style="text-align:right"><span class="badge ${c.offline>0?'badge-orange':'badge-green'}">${c.online}/${total} online</span></div>
+      <div style="width:60px;height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${c.offline>0?'var(--orange)':'var(--green)'};border-radius:3px"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDashboardSchedule() {
+  const el = document.getElementById('dashboard-schedule');
+  if (!state.schedules.length) {
+    el.innerHTML = '<div class="empty-state"><p class="text-muted" style="font-size:13px">No schedules configured yet.<br><a href="#" onclick="showPage(\'schedule\')" style="color:var(--blue)">Set up a schedule →</a></p></div>';
+    return;
+  }
+  const now = new Date();
+  const nowMins = now.getHours()*60 + now.getMinutes();
+  el.innerHTML = state.schedules.slice(0,5).map(s => {
+    const [sh,sm] = s.start.split(':').map(Number);
+    const [eh,em] = s.end.split(':').map(Number);
+    const startM = sh*60+sm, endM = eh*60+em;
+    const active = nowMins >= startM && nowMins < endM;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:4px;height:36px;border-radius:2px;background:${active?'var(--green)':'var(--border)'}"></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${s.playlistName}</div><div style="font-size:11px;color:var(--text-secondary)">${s.start} – ${s.end} · ${s.group}</div></div>
+      ${active ? '<span class="badge badge-green">LIVE</span>' : '<span class="badge badge-gray">Scheduled</span>'}
+    </div>`;
+  }).join('');
+}
+
+// ===================== CONTENT LIBRARY =====================
+function handleFileUpload(files) {
+  Array.from(files).forEach(file => {
+    const url = URL.createObjectURL(file);
+    const type = file.type.startsWith('video') ? 'video' : file.type.startsWith('image') ? 'image' : 'html';
+    state.assets.push({ id: 'a' + Date.now() + Math.random(), name: file.name, type, url, size: file.size, file });
+    addAuditEntry('User', `Uploaded asset: ${file.name}`);
+  });
+  renderAssetGrid();
+  showToast(`${files.length} file(s) uploaded`, 'success');
+}
+
+function renderAssetGrid(filter='') {
+  const grid = document.getElementById('asset-grid');
+  const filtered = state.assets.filter(a => !filter || a.name.toLowerCase().includes(filter.toLowerCase()));
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-secondary);font-size:13px">${state.assets.length ? 'No assets match your search' : 'No assets yet. Upload files above.'}</div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(a => `
+    <div class="asset-item" onclick="toggleAssetSelect('${a.id}',this)">
+      ${a.type==='image'?`<img src="${a.url}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover">`:
+        a.type==='video'?`<video src="${a.url}" style="width:100%;height:100%;object-fit:cover"></video>`:
+        `<div class="asset-type-icon">🌐</div>`}
+      <div class="asset-name" style="position:relative;z-index:2;background:rgba(255,255,255,0.85);width:100%;padding:3px 4px;font-size:10px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}</div>
+    </div>`).join('');
+}
+
+function filterAssets(v) { renderAssetGrid(v); }
+
+function toggleAssetSelect(id, el) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) state.selectedAssets.push(id);
+  else state.selectedAssets = state.selectedAssets.filter(x => x !== id);
+}
+
+// ===================== CANVAS EDITOR =====================
+let canvasScale = 1;
+let elements = [];
+let selectedEl = null;
+let dragging = null, resizing = null;
+let dragOffset = { x:0, y:0 };
+let currentSlides = [{ id: 's1', name: 'Slide 1', duration: 10, bg: '#000000', elements: [], expiry: '' }];
+let activeSlideIdx = 0;
+
+function initCanvas() {
+  const wrapper = document.getElementById('canvas-wrapper');
+  const canvas = document.getElementById('slide-canvas');
+  const { w, h } = state.resolution;
+  const maxW = wrapper.parentElement.clientWidth - 32;
+  canvasScale = Math.min(maxW / w, 600 / h);
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = Math.round(w * canvasScale) + 'px';
+  canvas.style.height = Math.round(h * canvasScale) + 'px';
+  const layer = document.getElementById('elements-layer');
+  layer.style.width = canvas.style.width;
+  layer.style.height = canvas.style.height;
+  wrapper.style.width = canvas.style.width;
+  wrapper.style.height = canvas.style.height;
+  drawCanvasBG();
+  renderSlideStrip();
+  renderElements();
+}
+
+function drawCanvasBG() {
+  const canvas = document.getElementById('slide-canvas');
+  const ctx = canvas.getContext('2d');
+  const bg = document.getElementById('slide-bg').value;
+  ctx.fillStyle = bg || '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= canvas.width; x += 160) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for (let y = 0; y <= canvas.height; y += 90) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+}
+
+function setResolution(val) {
+  const [w,h] = val.split(',').map(Number);
+  state.resolution = { w, h };
+  setTimeout(initCanvas, 100);
+}
+
+function renderElements() {
+  const layer = document.getElementById('elements-layer');
+  layer.innerHTML = '';
+  elements.forEach((el, i) => {
+    const div = document.createElement('div');
+    div.className = 'canvas-element' + (selectedEl === i ? ' selected' : '');
+    div.style.left = Math.round(el.x * canvasScale) + 'px';
+    div.style.top = Math.round(el.y * canvasScale) + 'px';
+    div.style.width = Math.round(el.w * canvasScale) + 'px';
+    div.style.height = Math.round(el.h * canvasScale) + 'px';
+    div.style.zIndex = el.z || i + 1;
+    div.innerHTML = `<div class="element-label">${el.type.toUpperCase()} #${i+1}</div>`;
+    if (el.type === 'text') {
+      div.innerHTML += `<div class="canvas-text-el" style="width:100%;height:100%;font-size:${Math.round(el.fontSize * canvasScale)}px;color:${el.color};font-weight:${el.bold?'700':'400'};font-family:${el.font||'DM Sans, sans-serif'};text-align:${el.align||'center'};padding:4px">${el.content}</div>`;
+    } else if (el.type === 'image' && el.url) {
+      div.innerHTML += `<img src="${el.url}" style="width:100%;height:100%;object-fit:cover;pointer-events:none">`;
+    } else if (el.type === 'video' && el.url) {
+      div.innerHTML += `<video src="${el.url}" style="width:100%;height:100%;object-fit:cover;pointer-events:none" autoplay muted loop></video>`;
+    } else if (el.type === 'ticker') {
+      div.innerHTML += `<div class="ticker-zone" style="position:relative;width:100%;height:100%;background:rgba(242,103,34,0.9)"><div class="ticker-content">${el.content}</div></div>`;
+    } else if (el.type === 'zone') {
+      div.innerHTML += `<div class="zone-overlay" style="width:100%;height:100%;border:2px dashed rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-size:${Math.round(11*canvasScale)}px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase">${el.label}</div>`;
+    }
+    div.innerHTML += `<div class="resize-handle resize-se"></div><div class="resize-handle resize-sw"></div><div class="resize-handle resize-ne"></div><div class="resize-handle resize-nw"></div>`;
+    div.addEventListener('mousedown', e => startDrag(e, i));
+    div.querySelector('.resize-se').addEventListener('mousedown', e => startResize(e, i, 'se'));
+    div.querySelector('.resize-sw').addEventListener('mousedown', e => startResize(e, i, 'sw'));
+    div.querySelector('.resize-ne').addEventListener('mousedown', e => startResize(e, i, 'ne'));
+    div.querySelector('.resize-nw').addEventListener('mousedown', e => startResize(e, i, 'nw'));
+    layer.appendChild(div);
+  });
+  if (selectedEl !== null && elements[selectedEl]) showPropPanel(selectedEl);
+  else document.getElementById('prop-panel').style.display = 'none';
+}
+
+function startDrag(e, i) {
+  if (e.target.classList.contains('resize-handle')) return;
+  e.preventDefault(); e.stopPropagation();
+  selectedEl = i;
+  const div = e.currentTarget;
+  const rect = div.getBoundingClientRect();
+  dragging = i;
+  dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  renderElements();
+}
+
+function startResize(e, i, dir) {
+  e.preventDefault(); e.stopPropagation();
+  selectedEl = i;
+  resizing = { i, dir, startX: e.clientX, startY: e.clientY, startEl: {...elements[i]} };
+}
+
+document.addEventListener('mousemove', e => {
+  if (dragging !== null) {
+    const layer = document.getElementById('elements-layer');
+    const rect = layer.getBoundingClientRect();
+    const x = (e.clientX - rect.left - dragOffset.x) / canvasScale;
+    const y = (e.clientY - rect.top - dragOffset.y) / canvasScale;
+    elements[dragging].x = Math.max(0, x);
+    elements[dragging].y = Math.max(0, y);
+    renderElements();
+  }
+  if (resizing !== null) {
+    const dx = (e.clientX - resizing.startX) / canvasScale;
+    const dy = (e.clientY - resizing.startY) / canvasScale;
+    const el = elements[resizing.i]; const s = resizing.startEl;
+    if (resizing.dir === 'se') { el.w = Math.max(40, s.w + dx); el.h = Math.max(20, s.h + dy); }
+    if (resizing.dir === 'sw') { el.w = Math.max(40, s.w - dx); el.x = s.x + dx; el.h = Math.max(20, s.h + dy); }
+    if (resizing.dir === 'ne') { el.w = Math.max(40, s.w + dx); el.h = Math.max(20, s.h - dy); el.y = s.y + dy; }
+    if (resizing.dir === 'nw') { el.w = Math.max(40, s.w - dx); el.x = s.x + dx; el.h = Math.max(20, s.h - dy); el.y = s.y + dy; }
+    renderElements();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  dragging = null; resizing = null;
+});
+
+document.getElementById('elements-layer').addEventListener('mousedown', e => {
+  if (e.target === e.currentTarget) { selectedEl = null; renderElements(); document.getElementById('prop-panel').style.display='none'; }
+});
+
+function addTextElement() {
+  elements.push({ type:'text', x:100, y:100, w:400, h:80, content:'Edit this text', fontSize:36, color:'#FFFFFF', bold:false, align:'center', font:'DM Sans, sans-serif', z:elements.length+1 });
+  selectedEl = elements.length-1;
+  renderElements();
+}
+
+function addImageFromLibrary() {
+  openAssetPicker('image', url => {
+    elements.push({ type:'image', x:0, y:0, w:state.resolution.w, h:state.resolution.h, url, z:elements.length+1 });
+    selectedEl = elements.length-1;
+    renderElements();
+  });
+}
+
+function addVideoFromLibrary() {
+  openAssetPicker('video', url => {
+    elements.push({ type:'video', x:0, y:0, w:state.resolution.w, h:state.resolution.h, url, z:elements.length+1 });
+    selectedEl = elements.length-1;
+    renderElements();
+  });
+}
+
+function addTickerZone() {
+  elements.push({ type:'ticker', x:0, y:state.resolution.h-60, w:state.resolution.w, h:60, content:'Breaking News: SOTI CMS now managing your digital signage network — Connect. Deploy. Verify.', z:10 });
+  selectedEl = elements.length-1;
+  renderElements();
+}
+
+function addZone(type) {
+  const labels = { main:'MAIN CONTENT', 'lower-third':'LOWER THIRD' };
+  const presets = { main:{x:0,y:0,w:state.resolution.w,h:Math.round(state.resolution.h*0.75)}, 'lower-third':{x:0,y:Math.round(state.resolution.h*0.75),w:state.resolution.w,h:Math.round(state.resolution.h*0.25)} };
+  const p = presets[type];
+  elements.push({ type:'zone', label:labels[type]||type, x:p.x, y:p.y, w:p.w, h:p.h, z:1 });
+  renderElements();
+}
+
+function clearCanvas() { elements = []; selectedEl = null; renderElements(); drawCanvasBG(); }
+
+function showPropPanel(i) {
+  const el = elements[i];
+  const panel = document.getElementById('prop-panel');
+  panel.style.display = 'block';
+  let fields = `<div class="prop-row"><span class="prop-label">X</span><input class="prop-input" type="number" value="${Math.round(el.x)}" onchange="updateProp(${i},'x',+this.value)"></div>
+  <div class="prop-row"><span class="prop-label">Y</span><input class="prop-input" type="number" value="${Math.round(el.y)}" onchange="updateProp(${i},'y',+this.value)"></div>
+  <div class="prop-row"><span class="prop-label">W</span><input class="prop-input" type="number" value="${Math.round(el.w)}" onchange="updateProp(${i},'w',+this.value)"></div>
+  <div class="prop-row"><span class="prop-label">H</span><input class="prop-input" type="number" value="${Math.round(el.h)}" onchange="updateProp(${i},'h',+this.value)"></div>`;
+  if (el.type === 'text') {
+    fields += `<div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" value="${el.content}" onchange="updateProp(${i},'content',this.value)"></div>
+    <div class="prop-row"><span class="prop-label">Size</span><input class="prop-input" type="number" value="${el.fontSize}" onchange="updateProp(${i},'fontSize',+this.value)"></div>
+    <div class="prop-row"><span class="prop-label">Color</span><input type="color" class="prop-input" value="${el.color}" onchange="updateProp(${i},'color',this.value)" style="height:28px;cursor:pointer"></div>
+    <div class="prop-row"><span class="prop-label">Align</span><select class="prop-input" onchange="updateProp(${i},'align',this.value)"><option ${el.align==='left'?'selected':''}>left</option><option ${el.align==='center'?'selected':''}>center</option><option ${el.align==='right'?'selected':''}>right</option></select></div>
+    <div class="prop-row"><span class="prop-label">Bold</span><input type="checkbox" ${el.bold?'checked':''} onchange="updateProp(${i},'bold',this.checked)"></div>`;
+  } else if (el.type === 'ticker') {
+    fields += `<div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" value="${el.content}" onchange="updateProp(${i},'content',this.value)"></div>`;
+  }
+  fields += `<div class="prop-row" style="margin-top:8px"><button class="tool-btn" style="background:var(--red-bg);border-color:#FCA5A5;color:var(--red)" onclick="deleteElement(${i})">🗑 Delete Element</button></div>`;
+  document.getElementById('prop-fields').innerHTML = fields;
+}
+
+function updateProp(i, key, val) { elements[i][key] = val; renderElements(); drawCanvasBG(); }
+function deleteElement(i) { elements.splice(i,1); selectedEl=null; renderElements(); document.getElementById('prop-panel').style.display='none'; }
+
+function saveSlide() {
+  const name = document.getElementById('slide-name').value || `Slide ${activeSlideIdx+1}`;
+  const duration = parseInt(document.getElementById('slide-duration').value) || 10;
+  const bg = document.getElementById('slide-bg').value;
+  const expiry = document.getElementById('slide-expiry').value;
+  if (!currentSlides[activeSlideIdx]) currentSlides.push({ id:'s'+Date.now(), name, duration, bg, elements:[], expiry });
+  currentSlides[activeSlideIdx] = { ...currentSlides[activeSlideIdx], name, duration, bg, expiry, elements: JSON.parse(JSON.stringify(elements)) };
+  if (!state.slides.find(s => s.id === currentSlides[activeSlideIdx].id)) state.slides.push(currentSlides[activeSlideIdx]);
+  else { const idx = state.slides.findIndex(s => s.id === currentSlides[activeSlideIdx].id); state.slides[idx] = currentSlides[activeSlideIdx]; }
+  renderSlideStrip();
+  showToast(`Slide "${name}" saved`, 'success');
+  addAuditEntry('User', `Saved slide: ${name}`);
+}
+
+function newSlide() {
+  const slide = { id:'s'+Date.now(), name:`Slide ${currentSlides.length+1}`, duration:10, bg:'#000000', elements:[], expiry:'' };
+  currentSlides.push(slide);
+  activeSlideIdx = currentSlides.length - 1;
+  elements = [];
+  loadSlide(activeSlideIdx);
+  renderSlideStrip();
+}
+
+function loadSlide(i) {
+  activeSlideIdx = i;
+  const slide = currentSlides[i];
+  elements = JSON.parse(JSON.stringify(slide.elements || []));
+  document.getElementById('slide-name').value = slide.name;
+  document.getElementById('slide-duration').value = slide.duration;
+  document.getElementById('slide-bg').value = slide.bg || '#000000';
+  document.getElementById('slide-expiry').value = slide.expiry || '';
+  selectedEl = null;
+  drawCanvasBG();
+  renderElements();
+  renderSlideStrip();
+}
+
+function renderSlideStrip() {
+  const strip = document.getElementById('slide-strip');
+  strip.innerHTML = currentSlides.map((s,i) => `
+    <div class="slide-thumb ${i===activeSlideIdx?'active-slide':''}" onclick="loadSlide(${i})" style="background:${s.bg||'#111'}">
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,0.5)">S${i+1}</div>
+      <div class="slide-duration">${s.duration}s</div>
+    </div>`).join('') +
+    `<div class="slide-thumb slide-add" onclick="newSlide()">+</div>`;
+}
+
+// ===================== ASSET PICKER =====================
+let _assetPickerCallback = null;
+let _assetPickerSelected = null;
+
+function openAssetPicker(type, callback) {
+  _assetPickerCallback = callback;
+  _assetPickerSelected = null;
+  const grid = document.getElementById('asset-picker-grid');
+  const filtered = state.assets.filter(a => a.type === type);
+  document.getElementById('asset-picker-title').textContent = `Select ${type.charAt(0).toUpperCase()+type.slice(1)}`;
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--text-secondary)">No ${type} assets uploaded yet. <a href="#" onclick="closeModal('modal-asset-picker');showPage('content')" style="color:var(--blue)">Upload assets first</a></div>`;
+  } else {
+    grid.innerHTML = filtered.map(a => `
+      <div class="asset-item" id="ap-${a.id}" onclick="selectPickerAsset('${a.id}','${a.url}',this)">
+        ${a.type==='image'?`<img src="${a.url}" style="width:100%;height:100%;object-fit:cover">`:
+          a.type==='video'?`<video src="${a.url}" style="width:100%;height:100%;object-fit:cover"></video>`:''}
+        <div class="asset-name" style="position:relative;z-index:2;background:rgba(255,255,255,0.85);width:100%;padding:2px 4px">${a.name}</div>
+      </div>`).join('');
+  }
+  openModal('modal-asset-picker');
+}
+
+function selectPickerAsset(id, url, el) {
+  document.querySelectorAll('#asset-picker-grid .asset-item').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+  _assetPickerSelected = url;
+}
+
+function confirmAssetPick() {
+  if (_assetPickerSelected && _assetPickerCallback) { _assetPickerCallback(_assetPickerSelected); closeModal('modal-asset-picker'); }
+  else showToast('Please select an asset first', 'warning');
+}
+
+// ===================== PLAYLISTS =====================
+function initPlaylists() {
+  state.playlists = MOCK_PLAYLISTS_INIT.map(p => ({...p, slides:[...p.slides]}));
+}
+
+function renderPlaylists() {
+  const list = document.getElementById('playlist-list');
+  list.innerHTML = state.playlists.map((p,i) => `
+    <div class="playlist-card ${state.currentPlaylistIdx===i?'selected':''}" onclick="selectPlaylist(${i})">
+      <div class="playlist-thumb"><svg width="20" height="20" fill="none" stroke="rgba(255,255,255,0.4)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="playlist-info">
+        <div class="playlist-name">${p.name}</div>
+        <div class="playlist-meta">${p.slides.length} slides · ${p.desc || ''}</div>
+      </div>
+      <span class="badge badge-blue">${p.slides.reduce((a,s)=>a+(s.duration||p.defaultDuration),0)}s</span>
+    </div>`).join('');
+  document.getElementById('stat-playlists').textContent = state.playlists.length;
+}
+
+function selectPlaylist(i) {
+  state.currentPlaylistIdx = i;
+  renderPlaylists();
+  const p = state.playlists[i];
+  document.getElementById('pl-detail-name').textContent = p.name;
+  document.getElementById('pl-detail-meta').textContent = `${p.slides.length} slides · Loop duration: ${p.slides.reduce((a,s)=>a+(s.duration||p.defaultDuration),0)}s`;
+  const body = document.getElementById('pl-detail-body');
+  body.innerHTML = `
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div class="text-sm text-muted">Drag slides to reorder. Click + to add.</div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="openAddSlideModal(${i})">+ Add Slide</button>
+        <button class="btn btn-primary btn-sm" onclick="pushPlaylist('${p.id}','${p.name}')">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          Push to Devices
+        </button>
+      </div>
+    </div>
+    ${p.slides.length === 0
+      ? `<div class="empty-state"><p class="text-muted">No slides in this playlist yet.<br>Click "Add Slide" to add slides from the editor.</p></div>`
+      : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+          ${p.slides.map((s,si) => `
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden">
+              <div style="aspect-ratio:16/9;background:${s.bg||'#111'};display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4)">${s.name}</div>
+              <div style="padding:8px;display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:12px;font-weight:600">${s.name}</span>
+                <div class="flex gap-8">
+                  <span class="badge badge-gray">${s.duration}s</span>
+                  <button onclick="removeSlideFromPL(${i},${si})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:14px">✕</button>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>`}`;
+}
+
+function openAddSlideModal(plIdx) {
+  state._addingToPlaylistIdx = plIdx;
+  const sel = document.getElementById('slide-select-pl');
+  sel.innerHTML = state.slides.length
+    ? state.slides.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
+    : '<option value="">No slides saved yet — create slides in Layout Editor</option>';
+  openModal('modal-addslide');
+}
+
+function addSlideToPL() {
+  const i = state._addingToPlaylistIdx;
+  const slideId = document.getElementById('slide-select-pl').value;
+  const dur = parseInt(document.getElementById('slide-pl-dur').value) || 0;
+  const slide = state.slides.find(s => s.id === slideId);
+  if (!slide) { showToast('No slide selected', 'warning'); return; }
+  const entry = { ...slide, duration: dur || slide.duration };
+  state.playlists[i].slides.push(entry);
+  closeModal('modal-addslide');
+  selectPlaylist(i);
+  showToast(`Added "${slide.name}" to "${state.playlists[i].name}"`, 'success');
+  addAuditEntry('User', `Added slide "${slide.name}" to playlist "${state.playlists[i].name}"`);
+}
+
+function removeSlideFromPL(pi, si) {
+  state.playlists[pi].slides.splice(si,1);
+  selectPlaylist(pi);
+}
+
+function newPlaylist() { openModal('modal-newplaylist'); }
+
+function createPlaylist() {
+  const name = document.getElementById('new-pl-name').value.trim();
+  if (!name) { showToast('Please enter a name', 'warning'); return; }
+  state.playlists.push({ id:'pl'+Date.now(), name, desc:document.getElementById('new-pl-desc').value, defaultDuration: parseInt(document.getElementById('new-pl-duration').value)||10, slides:[] });
+  closeModal('modal-newplaylist');
+  renderPlaylists();
+  showToast(`Playlist "${name}" created`, 'success');
+  addAuditEntry('User', `Created playlist: ${name}`);
+}
+
+async function pushPlaylist(id, name) {
+  showToast(`Pushing "${name}" to MobiControl...`, 'info');
+  await new Promise(r => setTimeout(r, 1200));
+  showToast(`"${name}" pushed to all assigned devices`, 'success');
+  addAuditEntry('User', `Deployed playlist "${name}" to MobiControl devices`);
+}
+
+// ===================== SCHEDULER =====================
+function populateScheduleGroups() {
+  const sel = document.getElementById('sched-group');
+  if (!sel) return;
+  sel.innerHTML = (state.groups.length ? state.groups : MOCK_GROUPS).map(g => `<option value="${g.path}">${g.name}</option>`).join('');
+}
+
+function openScheduleModal() {
+  const sel = document.getElementById('sched-playlist');
+  sel.innerHTML = state.playlists.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('sched-date-start').value = today;
+  populateScheduleGroups();
+  openModal('modal-schedule');
+}
+
+function addScheduleBlock() {
+  const plId = document.getElementById('sched-playlist').value;
+  const pl = state.playlists.find(p => p.id === plId);
+  const block = {
+    id: 'sch'+Date.now(), playlistId: plId,
+    playlistName: pl ? pl.name : plId,
+    group: document.getElementById('sched-group').value,
+    start: document.getElementById('sched-start').value,
+    end: document.getElementById('sched-end').value,
+    dateStart: document.getElementById('sched-date-start').value,
+    dateEnd: document.getElementById('sched-date-end').value,
+    repeat: document.getElementById('sched-repeat').value,
+    color: ['#1A6FD4','#F26722','#2ECC71','#9B59B6','#E53E3E'][state.schedules.length % 5]
+  };
+  state.schedules.push(block);
+  closeModal('modal-schedule');
+  renderSchedule();
+  renderDashboardSchedule();
+  showToast(`Schedule block added for "${block.playlistName}"`, 'success');
+  addAuditEntry('User', `Scheduled "${block.playlistName}" from ${block.start} to ${block.end} on ${block.group}`);
+}
+
+function renderSchedule() {
+  const body = document.getElementById('schedule-body');
+  renderDashboardSchedule();
+  if (!state.schedules.length) {
+    body.innerHTML = `<div class="empty-state"><h3>No schedules yet</h3><p>Click "Add Schedule Block" to define when playlists should play</p></div>`;
+  } else {
+    const hours = Array.from({length:25},(_,i)=>i);
+    body.innerHTML = `
+      <div class="schedule-timeline">
+        <div class="timeline-header">${hours.map(h=>`<div class="timeline-hour">${h}:00</div>`).join('')}</div>
+        ${[...new Set(state.schedules.map(s=>s.group))].map(group => {
+          const groupBlocks = state.schedules.filter(s => s.group === group);
+          return `<div style="margin-bottom:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">${group.split('/').pop()}</div>
+            <div class="timeline-track">
+              ${groupBlocks.map(b => {
+                const [sh,sm] = b.start.split(':').map(Number);
+                const [eh,em] = b.end.split(':').map(Number);
+                const left = ((sh*60+sm) / (24*60)) * 100;
+                const width = (((eh*60+em) - (sh*60+sm)) / (24*60)) * 100;
+                return `<div class="timeline-block" style="left:${left}%;width:${width}%;background:${b.color}" title="${b.playlistName} ${b.start}-${b.end}">${b.playlistName}</div>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Playlist</th><th>Group</th><th>Time</th><th>Date Range</th><th>Repeat</th><th>Actions</th></tr></thead>
+        <tbody>${state.schedules.map((s,i) => `
+          <tr>
+            <td><span style="display:inline-block;width:10px;height:10px;background:${s.color};border-radius:50%;margin-right:6px"></span>${s.playlistName}</td>
+            <td><code style="font-size:11px">${s.group}</code></td>
+            <td><span class="badge badge-blue">${s.start} – ${s.end}</span></td>
+            <td>${s.dateStart}${s.dateEnd?' → '+s.dateEnd:' onwards'}</td>
+            <td>${s.repeat}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeSchedule(${i})">Remove</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  }
+  const devBody = document.getElementById('schedule-devices-body');
+  devBody.innerHTML = (state.groups.length ? state.groups : MOCK_GROUPS).map(g => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" checked style="cursor:pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--text-secondary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${g.name}</div><div style="font-size:11px;color:var(--text-secondary)">${g.path}</div></div>
+      <span class="badge badge-blue">${g.count} devices</span>
+    </div>`).join('');
+}
+
+function removeSchedule(i) { state.schedules.splice(i,1); renderSchedule(); showToast('Schedule removed','info'); }
+
+async function pushAllSchedules() {
+  showToast('Deploying all schedules to MobiControl...', 'info');
+  await new Promise(r => setTimeout(r,1500));
+  showToast('All schedules deployed successfully', 'success');
+  addAuditEntry('User', `Deployed ${state.schedules.length} schedule blocks to MobiControl`);
+}
+
+// ===================== PROOF OF PLAY =====================
+function renderPOP() {
+  const grid = document.getElementById('pop-grid');
+  const devices = state.devices.length ? state.devices : MOCK_DEVICES;
+  if (!devices.length) { grid.innerHTML = '<div class="empty-state"><h3>No devices</h3><p>Connect to MobiControl or enable mock mode</p></div>'; return; }
+  grid.innerHTML = devices.map((d,i) => {
+    const online = d.status === 'Online';
+    const hasConn = d.connection !== null;
+    const signalStr = d.signal ? signalStrength(d.signal) : (d.connection === 'Ethernet' ? 'Wired' : 'N/A');
+    const signalOk = !d.signal || d.signal > -80;
+    const playlistOk = !!d.playlist;
+    const checkinMins = Math.round((Date.now() - d.lastCheckin) / 60000);
+    const recentCheckin = checkinMins < 10;
+    const overallOk = online && hasConn && playlistOk && recentCheckin;
+    return `<div class="pop-device-card">
+      <div class="pop-device-header">
+        <div class="pop-device-thumb" onclick="showScreenPreview('${d.id}','${d.name}',${i})" title="Click for live screenshot">
+          <div style="color:rgba(255,255,255,0.3);font-size:9px;text-align:center">
+            ${online ? '<svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.4)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' : ''}
+            <div>📷 Click</div>
+          </div>
+          <div class="thumb-overlay">View Screen</div>
+        </div>
+        <div class="pop-device-info">
+          <div class="pop-device-name">${d.name}</div>
+          <div class="pop-device-group">${d.group}</div>
+        </div>
+        <div class="flex gap-8">
+          <span class="badge ${online?'badge-green':'badge-red'}">${online?'● ONLINE':'● OFFLINE'}</span>
+          ${overallOk ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-orange">⚠ Issues</span>'}
+        </div>
+      </div>
+      <div class="pop-metrics">
+        <div class="pop-metric">
+          <div class="pop-metric-label">Device Online</div>
+          <div class="pop-metric-value">
+            <span class="check-icon ${online?'check-pass':'check-fail'}">${online?'✓':'✗'}</span>
+            ${online ? `<span>Online</span><span class="text-muted" style="font-size:10px;margin-left:4px">${checkinMins}m ago</span>` : '<span style="color:var(--red)">Offline</span>'}
+          </div>
+        </div>
+        <div class="pop-metric">
+          <div class="pop-metric-label">Connectivity</div>
+          <div class="pop-metric-value">
+            <span class="check-icon ${hasConn&&signalOk?'check-pass':'check-warn'}">${hasConn&&signalOk?'✓':'⚠'}</span>
+            <div>
+              <div>${d.connection || 'Unknown'}</div>
+              <div style="font-size:10px;color:var(--text-secondary)">${signalStr}</div>
+            </div>
+          </div>
+        </div>
+        <div class="pop-metric">
+          <div class="pop-metric-label">Playlist</div>
+          <div class="pop-metric-value">
+            <span class="check-icon ${playlistOk?'check-pass':'check-fail'}">${playlistOk?'✓':'✗'}</span>
+            <span>${d.playlist || 'None assigned'}</span>
+          </div>
+        </div>
+        <div class="pop-metric">
+          <div class="pop-metric-label">Screenshot</div>
+          <div class="pop-metric-value">
+            <button class="btn btn-secondary btn-sm" onclick="showScreenPreview('${d.id}','${d.name}',${i})" style="font-size:11px;padding:4px 8px">📷 View</button>
+            <button class="btn btn-danger btn-sm" onclick="rebootDevice('${d.id}','${d.name}')" style="font-size:11px;padding:4px 8px" title="Remote reboot via MobiControl">↺ Reboot</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function signalStrength(dbm) {
+  if (!dbm) return 'N/A';
+  if (dbm > -60) return `Excellent (${dbm}dBm)`;
+  if (dbm > -70) return `Good (${dbm}dBm)`;
+  if (dbm > -80) return `Fair (${dbm}dBm)`;
+  return `Poor (${dbm}dBm)`;
+}
+
+function filterPOP(val) {
+  document.querySelectorAll('.pop-device-card').forEach(c => {
+    const name = c.querySelector('.pop-device-name').textContent.toLowerCase();
+    c.style.display = !val || name.includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+
+async function refreshPOP() {
+  showToast('Refreshing Proof of Play data...', 'info');
+  await loadDevices();
+  showToast('Proof of Play updated', 'success');
+}
+
+async function showScreenPreview(deviceId, deviceName, idx) {
+  openModal('modal-screen-preview');
+  document.getElementById('preview-modal-title').textContent = `Screen Preview — ${deviceName}`;
+  const container = document.getElementById('screen-preview-img');
+  container.innerHTML = `<div style="color:rgba(255,255,255,0.4);text-align:center"><div class="spinner" style="margin:0 auto 12px"></div><p>Requesting screenshot from MobiControl...</p></div>`;
+  document.getElementById('preview-device-info').innerHTML = '';
+  document.getElementById('preview-reboot-btn').onclick = () => rebootDevice(deviceId, deviceName);
+
+  // Try real MC screenshot API
+  const d = state.devices[idx] || MOCK_DEVICES[idx];
+  let screenshotUrl = null;
+  const token = await getMCToken();
+  if (token) {
+    try {
+      const server = document.getElementById('mc-server').value || state.mc.server;
+      const resp = await fetch(server.replace(/\/?$/,'/') + `api/v2/devices/${deviceId}/screenshot`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        screenshotUrl = data.ScreenshotUrl || data.screenshotUrl || data.url;
+      }
+    } catch(e) { console.warn('Screenshot API failed:', e.message); }
+  }
+
+  await new Promise(r => setTimeout(r, 1000));
+
+  if (screenshotUrl) {
+    container.innerHTML = `<img src="${screenshotUrl}" style="width:100%;border-radius:6px">`;
+  } else {
+    // Mock screenshot — generate a canvas-based preview
+    const cvs = document.createElement('canvas');
+    cvs.width = 640; cvs.height = 360;
+    const ctx = cvs.getContext('2d');
+    const bg = d.playlist === 'Safety Notices' ? '#CC0000' : d.playlist === 'Menu Board' ? '#1a472a' : '#1A1F2E';
+    ctx.fillStyle = bg; ctx.fillRect(0,0,640,360);
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    for (let x=0;x<640;x+=40){ctx.fillRect(x,0,1,360);} for(let y=0;y<360;y+=40){ctx.fillRect(0,y,640,1);}
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = 'bold 28px DM Sans, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(d.playlist || 'No Content', 320, 150);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '16px DM Sans, sans-serif';
+    ctx.fillText(d.name, 320, 190);
+    ctx.fillStyle = '#F26722'; ctx.fillRect(0,310,640,50);
+    ctx.fillStyle = 'white'; ctx.font = 'bold 14px DM Sans, sans-serif';
+    ctx.fillText('SOTI CMS Digital Signage — ' + new Date().toLocaleTimeString(), 320, 342);
+    container.innerHTML = `<img src="${cvs.toDataURL()}" style="width:100%;border-radius:6px"><div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:white;font-size:10px;padding:3px 8px;border-radius:4px">SIMULATED PREVIEW</div>`;
+    container.style.position = 'relative';
+  }
+
+  const checkinMins = Math.round((Date.now() - (d.lastCheckin || Date.now())) / 60000);
+  document.getElementById('preview-device-info').innerHTML = [
+    { label: 'Device ID', value: `<code>${deviceId}</code>` },
+    { label: 'Last Check-in', value: `${checkinMins}m ago` },
+    { label: 'OS', value: d.os || 'Android' },
+    { label: 'IP Address', value: d.ip || 'Unknown' },
+    { label: 'Connection', value: `${d.connection || 'WiFi'} ${d.signal ? signalStrength(d.signal) : ''}` },
+    { label: 'Active Playlist', value: d.playlist || 'None' },
+  ].map(r => `<div style="background:var(--bg);border-radius:6px;padding:10px 12px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:4px">${r.label}</div><div style="font-size:13px;font-weight:600">${r.value}</div></div>`).join('');
+  addAuditEntry('User', `Viewed screenshot for device: ${deviceName}`);
+}
+
+async function rebootDevice(id, name) {
+  if (!confirm(`Reboot device "${name}" via MobiControl?`)) return;
+  showToast(`Sending reboot command to ${name}...`, 'info');
+  const token = await getMCToken();
+  if (token) {
+    try {
+      const server = document.getElementById('mc-server').value || state.mc.server;
+      await fetch(server.replace(/\/?$/,'/') + `api/v2/devices/${id}/actions`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'Reboot' })
+      });
+    } catch(e) { console.warn('Reboot API:', e.message); }
+  }
+  await new Promise(r => setTimeout(r, 800));
+  showToast(`Reboot command sent to "${name}"`, 'success');
+  addAuditEntry('User', `Remote reboot triggered for device: ${name}`);
+}
+
+function exportPOP() {
+  const devices = state.devices.length ? state.devices : MOCK_DEVICES;
+  const rows = [['Device Name','Group','Status','Connection','Signal','Last Check-in','Playlist','Verified']];
+  devices.forEach(d => {
+    const checkinMins = Math.round((Date.now()-d.lastCheckin)/60000);
+    rows.push([d.name, d.group, d.status, d.connection, d.signal||'N/A', `${checkinMins}m ago`, d.playlist||'None', d.status==='Online'?'Yes':'No']);
+  });
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `proof-of-play-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  showToast('Proof of Play exported as CSV', 'success');
+  addAuditEntry('User', 'Exported Proof of Play report as CSV');
+}
+
+// ===================== DEVICES TABLE =====================
+function renderDevicesTable() {
+  const tbody = document.getElementById('devices-table-body');
+  const devices = state.devices.length ? state.devices : MOCK_DEVICES;
+  document.getElementById('device-count-badge').textContent = `${devices.length} devices`;
+  if (!devices.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-secondary)">No devices. Check MobiControl connection in Settings.</td></tr>'; return; }
+  tbody.innerHTML = devices.map((d,i) => {
+    const online = d.status === 'Online';
+    const checkinMins = Math.round((Date.now()-d.lastCheckin)/60000);
+    return `<tr>
+      <td><div style="font-weight:600">${d.name}</div><div style="font-size:11px;color:var(--text-secondary)">${d.ip||''}</div></td>
+      <td><code style="font-size:11px">${d.group.split('/').slice(-2).join('/')}</code></td>
+      <td><span class="badge ${online?'badge-green':'badge-red'}">${online?'● Online':'● Offline'}</span></td>
+      <td>${d.connection||'—'}</td>
+      <td>${d.signal ? signalStrength(d.signal) : (d.connection==='Ethernet'?'Wired':'—')}</td>
+      <td style="font-family:'Consolas','SF Mono','Fira Code','Monaco',monospace;font-size:12px">${checkinMins < 60 ? checkinMins+'m ago' : Math.round(checkinMins/60)+'h ago'}</td>
+      <td style="font-size:12px">${d.os||'—'}</td>
+      <td>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary btn-sm" onclick="showScreenPreview('${d.id}','${d.name}',${i})">📷</button>
+          <button class="btn btn-danger btn-sm" onclick="rebootDevice('${d.id}','${d.name}')">↺</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== EMERGENCY =====================
+function triggerEmergency() {
+  if (state.emergencyActive) return;
+  if (!confirm('⚠️ Trigger EMERGENCY OVERRIDE?\n\nThis will push emergency content to ALL screens immediately, overriding all schedules.')) return;
+  state.emergencyActive = true;
+  document.getElementById('emergency-bar').classList.add('show');
+  showToast('EMERGENCY OVERRIDE ACTIVATED — All screens updated', 'error');
+  addAuditEntry('User', '🚨 EMERGENCY OVERRIDE triggered — all devices affected');
+}
+
+function cancelEmergency() {
+  state.emergencyActive = false;
+  document.getElementById('emergency-bar').classList.remove('show');
+  showToast('Emergency override cancelled — resuming normal schedule', 'info');
+  addAuditEntry('User', 'Emergency override cancelled — normal schedule resumed');
+}
+
+// ===================== AUDIT LOG =====================
+function renderAuditLog() {
+  const body = document.getElementById('audit-body');
+  if (!state.auditLog.length) { body.innerHTML = '<div class="empty-state"><p class="text-muted">No actions recorded yet</p></div>'; return; }
+  body.innerHTML = state.auditLog.map(e => `
+    <div class="audit-entry">
+      <div class="audit-dot"></div>
+      <div class="audit-time">${e.time.toLocaleTimeString()}<br>${e.time.toLocaleDateString()}</div>
+      <div class="audit-msg"><strong>${e.actor}</strong> — ${e.msg}</div>
+    </div>`).join('');
+}
+
+function exportAudit() {
+  const rows = [['Time','Actor','Action']];
+  state.auditLog.forEach(e => rows.push([e.time.toISOString(), e.actor, e.msg]));
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+}
+
+// ===================== SETTINGS =====================
+function saveSettings() {
+  state.mc.server = document.getElementById('mc-server').value;
+  state.mc.clientId = document.getElementById('mc-client-id').value;
+  state.mc.clientSecret = document.getElementById('mc-client-secret').value;
+  document.getElementById('api-endpoint-display').textContent = state.mc.server;
+  showToast('Settings saved', 'success');
+  addAuditEntry('Settings', 'MobiControl connection settings updated');
+}
+
+function toggleMockMode(el) {
+  el.classList.toggle('on');
+  state.mc.mockMode = el.classList.contains('on');
+  showToast(`Mock mode ${state.mc.mockMode ? 'enabled' : 'disabled'}`, 'info');
+}
+
+// ===================== MISC =====================
+function topbarAction() { showPage('content'); }
+
+function refreshAll() {
+  loadDevices();
+  renderDashboardSchedule();
+}
+
+function initDropZone() {
+  const dz = document.getElementById('drop-zone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFileUpload(e.dataTransfer.files); });
+}
+
+// ===================== WEB PLAYLISTS =====================
+const MOCK_WEB_URLS = [
+  { id:'w1', name:'KPI Dashboard', href:'https://dashboard.company.com/kpis', refresh:60, category:'Dashboard / Metrics', notes:'Real-time ops metrics' },
+  { id:'w2', name:'Worker Station Board', href:'https://ops.company.com/stations', refresh:30, category:'Worker Stations', notes:'Assignment rotations' },
+  { id:'w3', name:'Safety Notices', href:'https://intranet.company.com/safety', refresh:300, category:'News / Info', notes:'Daily safety briefing' },
+  { id:'w4', name:'Live Weather', href:'https://weather.company.com/toronto', refresh:600, category:'News / Info', notes:'' },
+];
+
+const MOCK_WEB_PLAYLISTS = [
+  { id:'wp1', name:'Ops Floor Rotation', interval:30, priority:'normal', urls:['w1','w2'], group:'/My Company/Warehouse', layout:'single' },
+  { id:'wp2', name:'Lobby Dashboard', interval:20, priority:'high', urls:['w1','w3'], group:'/My Company/Toronto HQ/Lobby', layout:'split-70-30' },
+];
+
+function initWebPlaylists() {
+  state.webUrls = [...MOCK_WEB_URLS];
+  state.webPlaylists = [...MOCK_WEB_PLAYLISTS];
+}
+
+function renderWebUrlList() {
+  const list = document.getElementById('web-url-list');
+  if (!state.webUrls || !state.webUrls.length) { list.innerHTML = '<div class="empty-state"><p class="text-muted">No URLs yet. Click + Add URL.</p></div>'; return; }
+  list.innerHTML = state.webUrls.map(u => `
+    <div class="web-url-card">
+      <div class="web-url-favicon">${u.category==='Dashboard / Metrics'?'📊':u.category==='Worker Stations'?'👷':u.category==='News / Info'?'📰':'🌐'}</div>
+      <div class="web-url-info">
+        <div class="web-url-name">${u.name}</div>
+        <div class="web-url-href">${u.href}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <span class="badge badge-gray" style="font-size:10px">${u.refresh>0?'↻ '+u.refresh+'s':'No refresh'}</span>
+        <button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:11px" onclick="removeWebUrl('${u.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+  populateZoneSelects();
+}
+
+function removeWebUrl(id) {
+  state.webUrls = state.webUrls.filter(u => u.id !== id);
+  renderWebUrlList();
+}
+
+function populateZoneSelects() {
+  const opts = ['<option value="">— Select URL —</option>', ...(state.webUrls||[]).map(u => `<option value="${u.id}">${u.name}</option>`)].join('');
+  ['zone-a-url','zone-b-url'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = opts; });
+  const wpOpts = (state.webUrls||[]).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+  const wpSel = document.getElementById('wp-group');
+  if (wpSel) wpSel.innerHTML = (state.groups.length ? state.groups : MOCK_GROUPS).map(g=>`<option value="${g.path}">${g.name}</option>`).join('');
+}
+
+function renderWebPlaylistTable() {
+  const tbody = document.getElementById('web-playlist-table');
+  if (!tbody) return;
+  const wps = state.webPlaylists || [];
+  if (!wps.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-secondary)">No web playlists yet</td></tr>'; return; }
+  tbody.innerHTML = wps.map((p,i) => {
+    const urlNames = (p.urls||[]).map(id => { const u = (state.webUrls||[]).find(x=>x.id===id); return u?u.name:id; }).join(', ');
+    const priBadge = p.priority==='urgent'?'badge-red':p.priority==='high'?'badge-orange':'badge-gray';
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td style="max-width:200px;font-size:12px">${urlNames||'—'}</td>
+      <td>${p.interval}s per URL</td>
+      <td>${(state.webUrls||[]).filter(u=>p.urls.includes(u.id)&&u.refresh>0).length > 0 ? '<span class="badge badge-green">Enabled</span>' : '<span class="badge badge-gray">—</span>'}</td>
+      <td><span class="badge ${priBadge}">${p.priority}</span></td>
+      <td style="font-size:12px;font-family:monospace">${p.group.split('/').pop()}</td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-primary btn-sm" onclick="pushWebPlaylist('${p.id}','${p.name}')">Push</button>
+        <button class="btn btn-danger btn-sm" onclick="removeWebPlaylist(${i})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+let currentZoneLayout = 'single';
+function selectZoneLayout(el, layout) {
+  document.querySelectorAll('.zone-layout-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  currentZoneLayout = layout;
+  applyZoneLayout(layout);
+}
+
+function applyZoneLayout(layout) {
+  const za = document.getElementById('zone-a');
+  const zb = document.getElementById('zone-b');
+  if (!za || !zb) return;
+  if (layout === 'single') { za.style.width='100%'; za.style.left='0'; zb.style.width='0'; }
+  else if (layout === 'split-h') { za.style.width='50%'; za.style.left='0'; zb.style.width='50%'; zb.style.left='50%'; zb.style.top='0'; zb.style.height='100%'; zb.style.position='absolute'; }
+  else if (layout === 'split-70-30') { za.style.width='70%'; za.style.left='0'; zb.style.width='30%'; zb.style.left='70%'; zb.style.top='0'; zb.style.height='100%'; zb.style.position='absolute'; }
+  else if (layout === 'pip') { za.style.width='100%'; za.style.left='0'; zb.style.width='35%'; zb.style.height='45%'; zb.style.position='absolute'; zb.style.bottom='8%'; zb.style.right='4%'; zb.style.top='auto'; zb.style.left='auto'; }
+}
+
+function updateZonePreview() { /* visual only */ }
+
+function saveZoneLayout() { showToast('Zone layout saved', 'success'); addAuditEntry('User', `Saved multi-zone layout: ${currentZoneLayout}`); }
+async function pushZoneLayout() {
+  showToast('Pushing multi-zone layout to devices...', 'info');
+  await new Promise(r=>setTimeout(r,1000));
+  showToast('Multi-zone layout deployed', 'success');
+  addAuditEntry('User', 'Deployed multi-zone web layout to devices');
+}
+
+function openAddUrlModal() { openModal('modal-addurl'); }
+function saveWebUrl() {
+  const name = document.getElementById('url-name').value.trim();
+  const href = document.getElementById('url-href').value.trim();
+  if (!name||!href) { showToast('Name and URL required','warning'); return; }
+  state.webUrls.push({ id:'w'+Date.now(), name, href, refresh:parseInt(document.getElementById('url-refresh').value)||0, category:document.getElementById('url-category').value, notes:document.getElementById('url-notes').value });
+  closeModal('modal-addurl');
+  renderWebUrlList();
+  showToast(`URL "${name}" added`,'success');
+  addAuditEntry('User', `Added web URL: ${name} → ${href}`);
+}
+
+function newWebPlaylist() {
+  const checkboxes = document.getElementById('wp-url-checkboxes');
+  checkboxes.innerHTML = (state.webUrls||[]).map(u=>`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" value="${u.id}"> ${u.name} <span style="font-size:11px;color:var(--text-secondary)">${u.category}</span></label>`).join('') || '<p style="color:var(--text-secondary);font-size:12px">Add URLs first</p>';
+  const wpGrp = document.getElementById('wp-group');
+  if (wpGrp) wpGrp.innerHTML = (state.groups.length?state.groups:MOCK_GROUPS).map(g=>`<option value="${g.path}">${g.name}</option>`).join('');
+  openModal('modal-webplaylist');
+}
+
+function saveWebPlaylist() {
+  const name = document.getElementById('wp-name').value.trim();
+  if (!name) { showToast('Name required','warning'); return; }
+  const urls = Array.from(document.querySelectorAll('#wp-url-checkboxes input:checked')).map(c=>c.value);
+  state.webPlaylists.push({ id:'wp'+Date.now(), name, interval:parseInt(document.getElementById('wp-interval').value)||30, priority:document.getElementById('wp-priority').value, urls, group:document.getElementById('wp-group').value, layout:currentZoneLayout });
+  closeModal('modal-webplaylist');
+  renderWebPlaylistTable();
+  showToast(`Web playlist "${name}" created`,'success');
+  addAuditEntry('User', `Created web playlist: ${name}`);
+}
+
+function removeWebPlaylist(i) { state.webPlaylists.splice(i,1); renderWebPlaylistTable(); }
+async function pushWebPlaylist(id, name) {
+  showToast(`Pushing web playlist "${name}"...`,'info');
+  await new Promise(r=>setTimeout(r,1000));
+  showToast(`"${name}" pushed to devices`,'success');
+  addAuditEntry('User', `Deployed web playlist: ${name}`);
+}
+
+// ===================== DEVICE HEALTH =====================
+const MOCK_HEALTH = [
+  { id:'d1', name:'Lobby Display 1', group:'Toronto HQ/Lobby', displayPower:'ON', cecStatus:'Active', uptime:'6d 14h', temp:'42°C', appRunning:'SOTI Kiosk', lastRecovery:null },
+  { id:'d2', name:'Lobby Display 2', group:'Toronto HQ/Lobby', displayPower:'ON', cecStatus:'Active', uptime:'6d 14h', temp:'39°C', appRunning:'SOTI Kiosk', lastRecovery:'2h ago' },
+  { id:'d3', name:'Cafeteria Screen', group:'Toronto HQ/Cafeteria', displayPower:'ON', cecStatus:'Active', uptime:'12d 3h', temp:'44°C', appRunning:'SOTI Kiosk', lastRecovery:null },
+  { id:'d4', name:'Retail - East Entrance', group:'Retail/East', displayPower:'OFF', cecStatus:'Standby', uptime:'—', temp:'—', appRunning:'—', lastRecovery:'7h ago (offline)' },
+  { id:'d5', name:'Retail - West Entrance', group:'Retail/West', displayPower:'ON', cecStatus:'Active', uptime:'2d 8h', temp:'38°C', appRunning:'SOTI Kiosk', lastRecovery:null },
+  { id:'d6', name:'Warehouse Floor A', group:'Warehouse', displayPower:'ON', cecStatus:'Active', uptime:'9d 1h', temp:'51°C', appRunning:'SOTI Kiosk', lastRecovery:'1d ago' },
+  { id:'d7', name:'Executive Boardroom', group:'Toronto HQ/Boardroom', displayPower:'STANDBY', cecStatus:'Standby', uptime:'1d 2h', temp:'36°C', appRunning:'SOTI Kiosk', lastRecovery:null },
+  { id:'d8', name:'Airport Gate B12', group:'Airport/Terminal B', displayPower:'ON', cecStatus:'Active', uptime:'4d 6h', temp:'40°C', appRunning:'SOTI Kiosk', lastRecovery:null },
+];
+
+function renderHealthStats() {
+  const el = document.getElementById('health-stats');
+  if (!el) return;
+  const h = MOCK_HEALTH;
+  const on = h.filter(d=>d.displayPower==='ON').length;
+  const standby = h.filter(d=>d.displayPower==='STANDBY').length;
+  const off = h.filter(d=>d.displayPower==='OFF').length;
+  const issues = h.filter(d=>d.lastRecovery).length;
+  el.innerHTML = [
+    {label:'Displays ON',val:on,sub:'CEC: Active',color:'var(--green)',icon:'📺'},
+    {label:'In Standby',val:standby,sub:'CEC: Standby',color:'var(--yellow)',icon:'🌙'},
+    {label:'Displays OFF',val:off,sub:'No CEC signal',color:'var(--red)',icon:'⭕'},
+    {label:'Had Recovery',val:issues,sub:'Self-healed recently',color:'var(--orange)',icon:'🔄'},
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}<div class="stat-icon" style="background:var(--bg);font-size:18px">${s.icon}</div></div><div class="stat-value" style="color:${s.color}">${s.val}</div><div class="stat-sub">${s.sub}</div></div>`).join('');
+  const badge = document.getElementById('health-badge');
+  if (badge) { badge.style.display = off > 0 ? '' : 'none'; badge.textContent = off; }
+}
+
+function renderHealthDeviceList() {
+  const el = document.getElementById('health-device-list');
+  if (!el) return;
+  el.innerHTML = MOCK_HEALTH.map(d => {
+    const pwrClass = d.displayPower==='ON'?'tv-on':d.displayPower==='STANDBY'?'tv-standby':'tv-off';
+    const pwrBg = d.displayPower==='ON'?'var(--green-bg)':d.displayPower==='STANDBY'?'var(--yellow-bg)':'var(--red-bg)';
+    return `<div class="health-card" style="border-radius:0;border-left:none;border-right:none;border-top:none;box-shadow:none">
+      <div class="health-card-header">
+        <div class="display-power-icon" style="background:${pwrBg}"><span class="${pwrClass}" style="font-size:18px">${d.displayPower==='ON'?'📺':d.displayPower==='STANDBY'?'🌙':'⭕'}</span></div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${d.name}</div><div style="font-size:11px;color:var(--text-secondary)">${d.group}</div></div>
+        <span class="badge ${d.displayPower==='ON'?'badge-green':d.displayPower==='STANDBY'?'badge-orange':'badge-red'}">${d.displayPower}</span>
+        <button class="btn btn-secondary btn-sm" onclick="pollDisplay('${d.id}','${d.name}')">Poll CEC</button>
+        <button class="btn btn-primary btn-sm" onclick="toggleDisplayPower('${d.id}','${d.displayPower}','${d.name}')">${d.displayPower==='ON'?'Standby':'Power ON'}</button>
+      </div>
+      <div class="health-metrics">
+        <div class="health-metric"><div class="health-metric-label">CEC Status</div><div class="health-metric-val"><span class="check-icon ${d.cecStatus==='Active'?'check-pass':'check-warn'}">${d.cecStatus==='Active'?'✓':'⚠'}</span>${d.cecStatus}</div></div>
+        <div class="health-metric"><div class="health-metric-label">Uptime</div><div class="health-metric-val">${d.uptime}</div></div>
+        <div class="health-metric"><div class="health-metric-label">Temp</div><div class="health-metric-val" style="${d.temp!=='—'&&parseInt(d.temp)>50?'color:var(--orange)':''}">${d.temp}</div></div>
+        <div class="health-metric"><div class="health-metric-label">Active App</div><div class="health-metric-val" style="font-size:11px">${d.appRunning}</div></div>
+        <div class="health-metric"><div class="health-metric-label">Last Recovery</div><div class="health-metric-val" style="font-size:11px;color:${d.lastRecovery?'var(--orange)':'var(--green)'}">${d.lastRecovery||'None'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function pollDisplay(id, name) {
+  showToast(`Polling CEC status for ${name}...`,'info');
+  await new Promise(r=>setTimeout(r,800));
+  showToast(`${name}: Display ON · CEC Active`,'success');
+  addAuditEntry('System',`CEC poll: ${name} — Display ON, signal active`);
+}
+
+async function toggleDisplayPower(id, current, name) {
+  const action = current==='ON' ? 'standby' : 'power on';
+  showToast(`Sending CEC ${action} to ${name}...`,'info');
+  await new Promise(r=>setTimeout(r,800));
+  showToast(`${name}: ${action} command sent via MobiControl`,'success');
+  addAuditEntry('User',`CEC ${action} command sent to: ${name}`);
+}
+
+async function pollAllDisplays() {
+  showToast('Polling all displays via MobiControl CEC...','info');
+  await new Promise(r=>setTimeout(r,1500));
+  showToast('All display statuses refreshed','success');
+  addAuditEntry('System','Bulk CEC poll completed for all managed displays');
+}
+
+function refreshHealth() { renderHealthStats(); renderHealthDeviceList(); showToast('Health data refreshed','info'); }
+function addHealthAlert() { showToast('Alert rule configuration coming in next release','info'); }
+
+// ===================== POWER MANAGEMENT =====================
+const MOCK_POWER_SCHEDULES = [
+  { id:'ps1', group:'/My Company/Toronto HQ', action:'on', time:'07:30', repeat:'Weekdays only', notes:'Office opening' },
+  { id:'ps2', group:'/My Company/Toronto HQ', action:'off', time:'20:00', repeat:'Weekdays only', notes:'Office closing' },
+  { id:'ps3', group:'/My Company/Retail', action:'on', time:'08:00', repeat:'Daily', notes:'Store opening' },
+  { id:'ps4', group:'/My Company/Retail', action:'off', time:'22:00', repeat:'Daily', notes:'Store closing after hours' },
+  { id:'ps5', group:'/My Company/Airport', action:'on', time:'05:00', repeat:'Daily', notes:'Terminal opens' },
+];
+
+function initPowerManagement() { state.powerSchedules = [...MOCK_POWER_SCHEDULES]; }
+
+function renderPowerSchedules() {
+  const el = document.getElementById('power-schedule-list');
+  if (!el) return;
+  const ps = state.powerSchedules || [];
+  if (!ps.length) { el.innerHTML = '<div class="empty-state"><p>No power schedules yet</p></div>'; return; }
+  el.innerHTML = ps.map((s,i) => `
+    <div class="power-schedule-row">
+      <div class="power-time-badge ${s.action==='on'?'power-on-badge':'power-off-badge'}">${s.action==='on'?'⚡ ON':'🔌 OFF'} ${s.time}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.group.split('/').pop()}</div><div style="font-size:11px;color:var(--text-secondary)">${s.repeat} · ${s.notes}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="removePowerSchedule(${i})">Remove</button>
+    </div>`).join('');
+  renderPowerCalendar();
+  populatePowerGroupSelect();
+}
+
+function renderPowerCalendar() {
+  const el = document.getElementById('power-calendar');
+  if (!el) return;
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const hours = [6,8,10,12,14,16,18,20,22];
+  el.innerHTML = `<div style="overflow-x:auto"><table style="min-width:600px">
+    <thead><tr><th>Group</th>${hours.map(h=>`<th style="text-align:center">${h}:00</th>`).join('')}</tr></thead>
+    <tbody>${(state.groups.length?state.groups:MOCK_GROUPS).map(g => {
+      const onSched = (state.powerSchedules||[]).find(s=>s.group===g.path&&s.action==='on');
+      const offSched = (state.powerSchedules||[]).find(s=>s.group===g.path&&s.action==='off');
+      const onH = onSched ? parseInt(onSched.time.split(':')[0]) : null;
+      const offH = offSched ? parseInt(offSched.time.split(':')[0]) : null;
+      return `<tr><td style="font-weight:600;font-size:12px">${g.name}</td>${hours.map(h => {
+        const isOn = onH!==null && offH!==null && h >= onH && h < offH;
+        const isOnTime = onH===h; const isOffTime = offH===h;
+        if (isOnTime) return `<td style="background:var(--green-bg);text-align:center;font-size:11px;font-weight:700;color:#16A34A;border-radius:4px">⚡ ON</td>`;
+        if (isOffTime) return `<td style="background:var(--red-bg);text-align:center;font-size:11px;font-weight:700;color:var(--red);border-radius:4px">OFF</td>`;
+        if (isOn) return `<td style="background:#F0FDF4;text-align:center;font-size:10px;color:#16A34A">●</td>`;
+        return `<td style="text-align:center;color:var(--border)">–</td>`;
+      }).join('')}</tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function populatePowerGroupSelect() {
+  ['ps-group','power-group-select'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = (state.groups.length?state.groups:MOCK_GROUPS).map(g=>`<option value="${g.path}">${g.name}</option>`).join('');
+  });
+}
+
+function openPowerScheduleModal() { populatePowerGroupSelect(); openModal('modal-power-schedule'); }
+
+function savePowerSchedule() {
+  const s = { id:'ps'+Date.now(), group:document.getElementById('ps-group').value, action:document.getElementById('ps-action').value, time:document.getElementById('ps-time').value, repeat:document.getElementById('ps-repeat').value, notes:document.getElementById('ps-notes').value };
+  state.powerSchedules.push(s);
+  closeModal('modal-power-schedule');
+  renderPowerSchedules();
+  showToast(`Power schedule added: ${s.action.toUpperCase()} at ${s.time}`,'success');
+  addAuditEntry('User',`Added power schedule: ${s.action.toUpperCase()} ${s.time} for ${s.group.split('/').pop()} (${s.repeat})`);
+}
+
+function removePowerSchedule(i) { state.powerSchedules.splice(i,1); renderPowerSchedules(); }
+
+async function powerAllOn() {
+  if (!confirm('Send CEC Power ON to all displays?')) return;
+  showToast('Sending CEC power-on to all displays...','info');
+  await new Promise(r=>setTimeout(r,1200));
+  showToast('All displays powered ON via CEC','success');
+  addAuditEntry('User','Bulk CEC Power ON sent to all managed displays');
+}
+async function powerAllOff() {
+  if (!confirm('Send CEC Standby to all displays?')) return;
+  showToast('Sending CEC standby to all displays...','info');
+  await new Promise(r=>setTimeout(r,1200));
+  showToast('All displays set to standby','success');
+  addAuditEntry('User','Bulk CEC Standby sent to all managed displays');
+}
+async function powerGroupOn() {
+  const g = document.getElementById('power-group-select').value;
+  showToast(`Powering ON: ${g.split('/').pop()}...`,'info');
+  await new Promise(r=>setTimeout(r,800));
+  showToast(`Group "${g.split('/').pop()}" powered ON`,'success');
+  addAuditEntry('User',`CEC Power ON → group: ${g}`);
+}
+async function powerGroupOff() {
+  const g = document.getElementById('power-group-select').value;
+  showToast(`Standby: ${g.split('/').pop()}...`,'info');
+  await new Promise(r=>setTimeout(r,800));
+  showToast(`Group "${g.split('/').pop()}" set to standby`,'success');
+  addAuditEntry('User',`CEC Standby → group: ${g}`);
+}
+
+// ===================== ZERO-TOUCH =====================
+const MOCK_PROVISIONED = [
+  { name:'Lobby Display 1', serial:'SN-A92810', enrolled:'Apr 01, 2026', group:'Toronto HQ/Lobby', playlist:'Morning Loop', status:'Active' },
+  { name:'Retail - East Entrance', serial:'SN-B44320', enrolled:'Apr 03, 2026', group:'Retail/East Region', playlist:'Promotions', status:'Active' },
+  { name:'Warehouse Floor A', serial:'SN-C11209', enrolled:'Apr 05, 2026', group:'Warehouse', playlist:'Safety Notices', status:'Active' },
+  { name:'Airport Gate B12', serial:'SN-D78812', enrolled:'Apr 06, 2026', group:'Airport/Terminal B', playlist:'Flight Info', status:'Active' },
+];
+
+function renderZeroTouch() {
+  const steps = document.getElementById('provision-steps');
+  if (!steps) return;
+  const STEPS = [
+    { done:true, title:'MobiControl Enrollment Profile', desc:'Configure enrollment server URL, Wi-Fi credentials, and kiosk app in MobiControl. This is the golden config pushed to every new device automatically.' },
+    { done:true, title:'Generate Enrollment QR Code', desc:'A single QR code encodes the enrollment server and profile ID. Print it or embed it in device packaging. No IT technician needed on-site.' },
+    { done:true, title:'Device First Boot', desc:'New Android device powers on, scans QR or uses NFC. MobiControl agent auto-installs, device joins the correct group, kiosk app deploys silently.' },
+    { done:false, title:'CMS Auto-Assignment', desc:'CMS detects new device in MobiControl, matches serial number to enrollment profile, and automatically assigns the correct playlist and schedule.' },
+    { done:false, title:'Content Live', desc:'Device displays the assigned playlist within minutes of first boot. No manual steps, no on-site configuration, no login required.' },
+  ];
+  steps.innerHTML = STEPS.map(s=>`<div class="provision-step">
+    <div class="step-num ${s.done?'done':''}">${s.done?'✓':''}</div>
+    <div class="step-info"><div class="step-title">${s.title}</div><div class="step-desc">${s.desc}</div></div>
+  </div>`).join('');
+
+  const table = document.getElementById('provision-table');
+  if (table) {
+    table.innerHTML = MOCK_PROVISIONED.map(p=>`<tr>
+      <td><strong>${p.name}</strong></td>
+      <td><code style="font-size:11px">${p.serial}</code></td>
+      <td>${p.enrolled}</td>
+      <td>${p.group}</td>
+      <td>${p.playlist}</td>
+      <td><span class="badge badge-green">${p.status}</span></td>
+    </tr>`).join('');
+    document.getElementById('provision-count').textContent = `${MOCK_PROVISIONED.length} this week`;
+  }
+
+  const eg = document.getElementById('enroll-group');
+  if (eg) eg.innerHTML = (state.groups.length?state.groups:MOCK_GROUPS).map(g=>`<option value="${g.path}">${g.name}</option>`).join('');
+  const ep = document.getElementById('enroll-playlist');
+  if (ep) ep.innerHTML = state.playlists.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+async function generateQR() { showToast('New QR code generated for current enrollment config','success'); addAuditEntry('User','Generated new device enrollment QR code'); }
+async function downloadQR() { showToast('QR code PNG downloaded','success'); }
+function saveEnrollConfig() { showToast('Enrollment configuration saved','success'); addAuditEntry('User','Updated zero-touch enrollment configuration'); }
+
+// ===================== SELF-HEALING =====================
+const MOCK_HEAL_EVENTS = [
+  { time: new Date(Date.now()-5*60000), device:'Lobby Display 2', trigger:'Browser unresponsive', action:'Auto-relaunch kiosk app', duration:'12s', result:'success' },
+  { time: new Date(Date.now()-47*60000), device:'Warehouse Floor A', trigger:'Watchdog timeout', action:'App process restart', duration:'8s', result:'success' },
+  { time: new Date(Date.now()-2*3600000), device:'Retail - East Entrance', trigger:'Power failure recovery', action:'Auto-boot + playlist resume', duration:'45s', result:'success' },
+  { time: new Date(Date.now()-5*3600000), device:'Cafeteria Screen', trigger:'Memory pressure', action:'App restart (attempt 1/3)', duration:'15s', result:'success' },
+  { time: new Date(Date.now()-26*3600000), device:'Airport Gate B12', trigger:'Network reconnect', action:'Content refresh + reload', duration:'5s', result:'success' },
+  { time: new Date(Date.now()-3*24*3600000), device:'Retail - East Entrance', trigger:'3x recover attempts exceeded', action:'Remote reboot via MobiControl', duration:'90s', result:'warning' },
+];
+
+function renderSelfHeal() {
+  const statsEl = document.getElementById('heal-stats');
+  if (statsEl) {
+    statsEl.innerHTML = [
+      {label:'Auto-Recoveries (30d)',val:24,sub:'Browser + app restarts',color:'var(--green)',icon:'🔄'},
+      {label:'Power Recoveries',val:3,sub:'Auto-boot after failure',color:'var(--blue)',icon:'⚡'},
+      {label:'MC Reboots Triggered',val:1,sub:'Escalated recoveries',color:'var(--orange)',icon:'↺'},
+      {label:'Avg Recovery Time',val:'18s',sub:'Time to restore content',color:'var(--text)',icon:'⏱'},
+    ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}<div class="stat-icon" style="background:var(--bg);font-size:18px">${s.icon}</div></div><div class="stat-value" style="color:${s.color};font-size:${typeof s.val==='string'?'22px':'28px'}">${s.val}</div><div class="stat-sub">${s.sub}</div></div>`).join('');
+  }
+
+  const log = document.getElementById('heal-event-log');
+  if (log) {
+    log.innerHTML = MOCK_HEAL_EVENTS.map(e=>`<div class="heal-event">
+      <div class="heal-icon ${e.result==='success'?'heal-auto':e.result==='warning'?'heal-warn':'heal-fail'}">${e.result==='success'?'✓':e.result==='warning'?'⚠':'✗'}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${e.device}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">Trigger: ${e.trigger}</div>
+        <div style="font-size:12px">Action: <strong>${e.action}</strong> · Recovered in ${e.duration}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);text-align:right;white-space:nowrap">${Math.round((Date.now()-e.time)/60000)}m ago</div>
+    </div>`).join('');
+  }
+
+  const table = document.getElementById('heal-device-table');
+  if (table) {
+    const devs = (state.devices.length?state.devices:MOCK_DEVICES);
+    table.innerHTML = devs.map(d => {
+      const evt = MOCK_HEAL_EVENTS.find(e=>e.device===d.name);
+      return `<tr>
+        <td><strong>${d.name}</strong></td>
+        <td style="font-size:12px">${evt?new Date(evt.time).toLocaleString():'—'}</td>
+        <td style="font-size:12px">${evt?evt.trigger:'—'}</td>
+        <td style="font-size:12px">${evt?evt.action:'—'}</td>
+        <td style="font-size:12px">${evt?evt.duration:'—'}</td>
+        <td>${evt?(evt.result==='success'?'<span class="badge badge-green">Recovered</span>':'<span class="badge badge-orange">Escalated</span>'):'<span class="badge badge-gray">No events</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function exportHealLog() {
+  const rows = [['Time','Device','Trigger','Action','Duration','Result']];
+  MOCK_HEAL_EVENTS.forEach(e=>rows.push([e.time.toISOString(),e.device,e.trigger,e.action,e.duration,e.result]));
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `self-healing-log-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  showToast('Self-healing log exported','success');
+}
+async function init() {
+  initPlaylists();
+  initWebPlaylists();
+  initPowerManagement();
+  initDropZone();
+  addAuditEntry('System', 'SOTI CMS started');
+  document.getElementById('conn-dot').className = 'conn-dot connecting';
+  document.getElementById('conn-label').textContent = 'Connecting...';
+  await loadDevices();
+  renderDashboardSchedule();
+  initCanvas();
+  renderHealthStats();
+  addAuditEntry('System', 'Device sync completed from MobiControl');
+  addAuditEntry('System', 'Mock mode active — live data available when MC reachable');
+  addAuditEntry('System', 'Self-healing watchdog active — monitoring 8 devices');
+  setTimeout(updateStats, 100);
+}
+
+init();
+</script>
+</body>
+</html>
