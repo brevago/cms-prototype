@@ -1,6 +1,6 @@
-# SOTI CMS — Digital Signage Platform Prototype
+# CMS — Digital Signage Platform Prototype
 
-> A functional prototype demonstrating how SOTI MobiControl integrates with a content management system for enterprise digital signage. Built for product evaluation by SOTI stakeholders and customers.
+> A functional prototype demonstrating how EMM integrates with a content management system for enterprise digital signage. Built for product evaluation.
 
 ---
 
